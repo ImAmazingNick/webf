@@ -1,0 +1,35 @@
+name: Update submodule in tcs-chrome-extension
+
+on:
+  push:
+    branches: [web]
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tcs-chrome-extension
+        uses: actions/checkout@v4
+        with:
+          repository: tekliner/tcs-chrome-extension
+          token: ${{ secrets.TCS_REPO_TOKEN }}
+          submodules: true
+          fetch-depth: 0
+
+      - name: Update web submodule to latest
+        run: |
+          git submodule update --init --remote algorithms/Design/web
+          cd algorithms/Design/web
+          echo "Updated to: $(git rev-parse HEAD)"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add algorithms/Design/web
+          if git diff --cached --quiet; then
+            echo "No submodule changes to commit"
+          else
+            git commit -m "chore: auto-update web submodule to $(cd algorithms/Design/web && git rev-parse --short HEAD)"
+            git push origin main
+          fi
