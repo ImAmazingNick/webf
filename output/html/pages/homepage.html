@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Improvado Agent — All Your Business Data. One AI Agent That Acts.</title>
+<meta name="description" content="Improvado connects all your business data into one knowledge graph. The AI agent reasons across marketing, sales, support, product, and finance — then takes action.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Palette */
+  --color-deep:        #20124d;
+  --color-deeper:      #150d35;
+  --color-violet:      #8068ff;
+  --color-mint:        #8affbc;
+  --color-light-bg:    #f1f5ff;
+  --color-card-bg:     #f4f5ff;
+  --color-white:       #FFFFFF;
+  --color-warm-bg:     #f9f8f6;
+  --color-pink:        #FF3186;
+  --color-dark-card:   #2d1b6b;
+  --color-body-text:   #20124d;
+  --color-muted:       #7b7394;
+  --color-muted-dark:  #a9a0c4;
+
+  /* Typography */
+  --font-display: 'Raleway', 'Helvetica Neue', Arial, sans-serif;
+  --font-body:    'Inter', 'Helvetica Neue', Arial, sans-serif;
+
+  --text-xs:    0.75rem;
+  --text-sm:    0.8125rem;
+  --text-base:  1.0625rem;
+  --text-lg:    1.1875rem;
+  --text-xl:    1.375rem;
+
+  --text-hero:  clamp(2.5rem, 1.8rem + 3.5vw, 5.5rem);
+  --text-h2:    clamp(1.75rem, 1.3rem + 2.2vw, 3.375rem);
+  --text-h3:    clamp(1.375rem, 1.1rem + 1.4vw, 2.375rem);
+  --text-h4:    clamp(1.125rem, 1rem + 0.5vw, 1.5rem);
+  --text-stat:  clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+
+  /* Line Heights */
+  --lh-hero:    1.05;
+  --lh-h2:      1.12;
+  --lh-h3:      1.2;
+  --lh-h4:      1.25;
+  --lh-lead:    1.55;
+  --lh-body:    1.65;
+  --lh-caption: 1.5;
+
+  /* Letter Spacing */
+  --ls-hero:    -0.035em;
+  --ls-h2:      -0.025em;
+  --ls-h3:      -0.015em;
+  --ls-h4:      -0.01em;
+  --ls-body:    0em;
+  --ls-caption: 0.01em;
+  --ls-label:   0.08em;
+
+  /* Spacing (8px grid) */
+  --space-xs:   8px;
+  --space-sm:   16px;
+  --space-md:   24px;
+  --space-lg:   32px;
+  --space-xl:   48px;
+  --space-2xl:  64px;
+  --space-3xl:  96px;
+  --space-4xl:  120px;
+  --space-5xl:  160px;
+
+  --section-pad:      120px;
+  --section-pad-hero: 140px;
+  --section-pad-sm:   80px;
+
+  --gap-label-heading:  16px;
+  --gap-heading-body:   24px;
+  --gap-body-cta:       48px;
+  --gap-heading-grid:   48px;
+  --gap-cards:          28px;
+  --gap-paragraphs:     24px;
+  --gap-stats:          48px;
+
+  /* Max Widths */
+  --max-width:      1280px;
+  --max-hero-text:  900px;
+  --max-h2-text:    800px;
+  --max-lead-text:  640px;
+  --max-body-text:  680px;
+  --max-caption:    580px;
+
+  /* Elevation */
+  --shadow-none:         none;
+  --shadow-xs:           0 1px 4px rgba(32,18,77,0.04);
+  --shadow-sm:           0 2px 12px rgba(32,18,77,0.06);
+  --shadow-md:           0 4px 20px rgba(32,18,77,0.08);
+  --shadow-lg:           0 8px 40px rgba(32,18,77,0.12);
+  --shadow-violet:       0 4px 14px rgba(128,104,255,0.35);
+  --shadow-violet-hover: 0 6px 20px rgba(128,104,255,0.45);
+
+  /* Borders */
+  --border-subtle-light: 1px solid rgba(128,104,255,0.08);
+  --border-subtle-dark:  1px solid rgba(128,104,255,0.15);
+  --border-hover-light:  1px solid rgba(128,104,255,0.2);
+  --border-hover-dark:   1px solid rgba(128,104,255,0.35);
+
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* Transitions */
+  --ease-default: 0.2s ease;
+  --ease-smooth:  0.3s ease;
+}
+
+/* Reset & Base */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--lh-body);
+  color: var(--color-body-text);
+  background: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Background Themes */
+.bg-dark { background: var(--color-deep); color: var(--color-white); }
+.bg-darker { background: var(--color-deeper); color: var(--color-white); }
+.bg-light { background: var(--color-light-bg); }
+.bg-warm { background: var(--color-warm-bg); }
+
+/* Layout */
+.section { padding-top: var(--section-pad); padding-bottom: var(--section-pad); }
+.s-hero { padding-top: var(--section-pad-hero); padding-bottom: var(--section-pad-hero); }
+
+.container {
+  max-width: var(--max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+}
+
+.section-header {
+  margin-bottom: var(--gap-heading-grid);
+}
+
+.section-header .eyebrow {
+  margin-bottom: var(--gap-label-heading);
+}
+
+.section-header .h2 {
+  margin-bottom: var(--gap-heading-body);
+}
+
+/* Typography */
+.eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  line-height: var(--lh-caption);
+  color: var(--color-violet);
+}
+
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-weight: 800;
+  line-height: var(--lh-hero);
+  letter-spacing: -0.04em;
+  max-width: var(--max-hero-text);
+}
+
+.h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: 600;
+  line-height: var(--lh-h2);
+  letter-spacing: var(--ls-h2);
+  max-width: var(--max-h2-text);
+}
+
+.h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: 600;
+  line-height: var(--lh-h3);
+  letter-spacing: var(--ls-h3);
+}
+
+.h4 {
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  font-weight: 600;
+  line-height: var(--lh-h4);
+  letter-spacing: var(--ls-h4);
+}
+
+.lead {
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  line-height: var(--lh-lead);
+  max-width: var(--max-lead-text);
+  color: var(--color-muted);
+}
+
+.body-text {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  max-width: var(--max-body-text);
+}
+
+.caption {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  line-height: var(--lh-caption);
+  letter-spacing: var(--ls-caption);
+  color: var(--color-muted);
+}
+
+.stat-num {
+  font-family: var(--font-display);
+  font-size: var(--text-stat);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Context-Dependent Colors */
+.bg-dark .eyebrow, .bg-darker .eyebrow { color: var(--color-mint); }
+.bg-dark .lead, .bg-darker .lead { color: var(--color-muted-dark); }
+.bg-dark .caption, .bg-darker .caption { color: var(--color-muted-dark); }
+.bg-dark .stat-num, .bg-darker .stat-num { color: var(--color-mint); }
+.bg-dark .accent, .bg-darker .accent { color: var(--color-mint); }
+.bg-dark .btn-link, .bg-darker .btn-link { color: var(--color-mint); }
+
+.bg-light .eyebrow, .bg-warm .eyebrow { color: var(--color-violet); }
+.bg-light .lead, .bg-warm .lead { color: var(--color-muted); }
+.bg-light .caption, .bg-warm .caption { color: var(--color-muted); }
+.bg-light .stat-num, .bg-warm .stat-num { color: var(--color-violet); }
+.bg-light .accent, .bg-warm .accent { color: var(--color-violet); }
+
+/* Accent Markup */
+.accent { font-weight: inherit; }
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding-left: 32px;
+  padding-right: 32px;
+  background: var(--color-violet);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-base);
+  letter-spacing: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--ease-default);
+  text-decoration: none;
+  box-shadow: var(--shadow-violet);
+}
+.btn-primary:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-violet-hover);
+}
+
+.btn-link {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-base);
+  color: var(--color-violet);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  transition: text-decoration-thickness var(--ease-default);
+}
+.btn-link:hover { text-decoration-thickness: 2px; }
+.bg-dark .btn-link, .bg-darker .btn-link { color: var(--color-mint); }
+
+/* Hero Layout */
+.hero-layout {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  gap: var(--space-xl);
+  align-items: center;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-heading-body);
+}
+
+.hero-content .h1 { margin-bottom: 0; }
+.hero-cta { margin-top: var(--space-md); }
+
+/* Hero Product Frame */
+.hero-product-frame {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4), 0 8px 32px rgba(128,104,255,0.15);
+  transform: perspective(1200px) rotateY(-2deg) rotateX(1deg);
+  transition: transform var(--ease-smooth);
+}
+.hero-product-frame:hover {
+  transform: perspective(1200px) rotateY(0deg) rotateX(0deg);
+}
+
+.browser-chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #1a1040;
+  border-bottom: 1px solid rgba(128,104,255,0.1);
+}
+.browser-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+.browser-bar {
+  flex: 1;
+  height: 28px;
+  margin-left: 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+}
+
+.browser-body {
+  background: #150e30;
+  padding: 32px 28px;
+  min-height: 320px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+}
+
+.mock-sidebar {
+  grid-row: 1 / -1;
+  background: rgba(128,104,255,0.06);
+  border-radius: 8px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mock-nav-item {
+  height: 10px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  width: 80%;
+}
+.mock-nav-item.is-active {
+  background: var(--color-violet);
+  opacity: 0.4;
+  width: 90%;
+}
+
+.mock-stat-card {
+  background: rgba(128,104,255,0.08);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid rgba(128,104,255,0.1);
+}
+.mock-stat-value {
+  height: 24px;
+  width: 60%;
+  background: var(--color-mint);
+  opacity: 0.3;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.mock-stat-label {
+  height: 8px;
+  width: 80%;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+}
+
+.mock-chart {
+  grid-column: 2 / 4;
+  background: rgba(128,104,255,0.06);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid rgba(128,104,255,0.08);
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.mock-bar {
+  flex: 1;
+  background: var(--color-violet);
+  opacity: 0.25;
+  border-radius: 3px 3px 0 0;
+  min-height: 20px;
+}
+.mock-bar:nth-child(1) { height: 45%; }
+.mock-bar:nth-child(2) { height: 65%; }
+.mock-bar:nth-child(3) { height: 40%; }
+.mock-bar:nth-child(4) { height: 80%; }
+.mock-bar:nth-child(5) { height: 55%; opacity: 0.35; background: var(--color-mint); }
+.mock-bar:nth-child(6) { height: 90%; }
+.mock-bar:nth-child(7) { height: 70%; }
+.mock-bar:nth-child(8) { height: 50%; }
+
+/* Hero Trust */
+.hero-trust { margin-top: var(--space-2xl); }
+.hero-trust .caption { margin-bottom: var(--space-sm); }
+.logo-bar-left { justify-content: flex-start; padding-top: 0; }
+
+/* SR Only */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+
+/* Email Capture Form */
+.form-row {
+  display: flex;
+  gap: 0;
+  max-width: 480px;
+}
+
+.form-input {
+  flex: 1;
+  height: 52px;
+  padding-left: var(--space-sm);
+  padding-right: var(--space-sm);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 16px;
+  outline: none;
+  transition: border-color var(--ease-default), background var(--ease-default);
+}
+.form-input::placeholder { color: rgba(255,255,255,0.3); }
+.form-input:focus {
+  border-color: var(--color-violet);
+  background: rgba(255,255,255,0.12);
+}
+
+.form-btn {
+  height: 52px;
+  padding-left: 28px;
+  padding-right: 28px;
+  background: var(--color-violet);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter var(--ease-default);
+  box-shadow: var(--shadow-violet);
+}
+.form-btn:hover { filter: brightness(1.12); }
+
+
+/* Pain Section — Split Layout + Ticker */
+.pain-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: center;
+}
+
+.pain-content {
+  display: flex;
+  flex-direction: column;
+}
+.pain-content .eyebrow { margin-bottom: var(--gap-label-heading); }
+.pain-content .h2 { margin-bottom: var(--gap-heading-body); }
+.pain-content .body-text { margin-bottom: var(--gap-body-cta); }
+
+.pain-ticker-wrap {
+  position: relative;
+  height: 500px;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+.pain-ticker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  animation: pain-scroll 28s linear infinite;
+}
+.pain-ticker:hover {
+  animation-play-state: paused;
+}
+
+@keyframes pain-scroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.pain-tick-card {
+  background: var(--color-white);
+  padding: var(--space-md) var(--space-md) var(--space-md) 28px;
+  border-left: 2px solid rgba(128,104,255,0.2);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: 0 1px 8px rgba(32,18,77,0.05);
+}
+.pain-tick-card .body-text {
+  color: var(--color-muted);
+  max-width: 100%;
+}
+
+/* Solution Steps Grid */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+}
+
+.step-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.step-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 56px;
+  line-height: 1.0;
+  margin-bottom: var(--space-sm);
+}
+
+.bg-dark .step-number { color: var(--color-mint); }
+
+.step-title { margin-bottom: 12px; }
+
+.step-desc {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  max-width: 280px;
+}
+
+.bg-dark .step-desc { color: var(--color-muted-dark); }
+
+/* Feature Cards (Bento Grid) */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-cards);
+  width: 100%;
+}
+
+.card-on-light {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  border: var(--border-subtle-light);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--ease-smooth), box-shadow var(--ease-smooth), transform var(--ease-smooth);
+}
+.card-on-light:hover {
+  border-color: rgba(128,104,255,0.2);
+  box-shadow: 0 2px 4px rgba(32,18,77,0.04), 0 4px 20px rgba(32,18,77,0.08);
+  transform: translateY(-2px);
+}
+
+.card-hero {
+  grid-column: span 2;
+  padding: 40px;
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+  color: var(--color-violet);
+}
+.feature-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Logo Bar */
+.logo-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-xl);
+  flex-wrap: wrap;
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-lg);
+}
+
+.logo-item {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-white);
+  opacity: 0.25;
+  transition: opacity var(--ease-smooth);
+  white-space: nowrap;
+  user-select: none;
+}
+.logo-item:hover { opacity: 0.5; }
+.bg-light .logo-item, .bg-warm .logo-item {
+  color: var(--color-deep);
+  opacity: 0.2;
+}
+.bg-light .logo-item:hover, .bg-warm .logo-item:hover { opacity: 0.4; }
+
+/* Social Proof — Split Layout */
+.proof-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: start;
+  margin-top: var(--space-xl);
+}
+
+.proof-quote {
+  position: relative;
+  padding-left: 0;
+}
+
+.proof-quote-mark {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 120px;
+  line-height: 0.8;
+  color: var(--color-violet);
+  opacity: 0.1;
+  position: absolute;
+  top: -20px;
+  left: -8px;
+  user-select: none;
+}
+
+.proof-quote-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-xl);
+  line-height: 1.7;
+  color: var(--color-body-text);
+  position: relative;
+  z-index: 1;
+}
+
+.proof-attr {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(32,18,77,0.08);
+}
+
+.proof-attr-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--color-body-text);
+}
+
+.proof-attr-company {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+
+/* Stats — Vertical Stack */
+.proof-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.proof-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-lg) 0;
+  border-bottom: 1px solid rgba(32,18,77,0.06);
+}
+.proof-stat:first-child {
+  padding-top: 0;
+}
+.proof-stat:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.proof-stat .stat-num {
+  color: var(--color-violet);
+}
+
+.proof-stat .caption {
+  color: var(--color-muted);
+}
+
+/* Section Divider */
+.section-divider {
+  height: 1px;
+  background: rgba(128,104,255,0.08);
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Enterprise Trust — Split Layout */
+.trust-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: start;
+  margin-bottom: var(--space-3xl);
+}
+
+.trust-content {
+  display: flex;
+  flex-direction: column;
+}
+.trust-content .eyebrow { margin-bottom: var(--gap-label-heading); }
+.trust-content .h2 { margin-bottom: var(--space-xl); }
+
+.trust-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.trust-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.trust-check-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--color-mint);
+  margin-top: 2px;
+}
+.trust-check-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.trust-check-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--color-muted-dark);
+}
+
+/* Badge Grid */
+.badge-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+.badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-md) var(--space-sm);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  transition: border-color var(--ease-smooth), background var(--ease-smooth);
+}
+.badge-item:hover {
+  border-color: rgba(128,104,255,0.2);
+  background: rgba(255,255,255,0.06);
+}
+
+.badge-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-mint);
+}
+.badge-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.badge-label {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+}
+
+/* CTA Divider */
+.cta-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(128,104,255,0.12);
+  margin-bottom: var(--space-3xl);
+}
+
+/* CTA Section */
+.cta-section { text-align: center; }
+
+.cta-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.cta-headline {
+  max-width: var(--max-h2-text);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-violet);
+  outline-offset: 2px;
+}
+.bg-dark *:focus-visible, .bg-darker *:focus-visible {
+  outline-color: var(--color-white);
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-sm);
+  z-index: 1000;
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-violet);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+.skip-link:focus { top: var(--space-sm); }
+
+/* Responsive: Tablet */
+@media (max-width: 991px) {
+  .section { padding-top: 96px; padding-bottom: 96px; }
+  .s-hero { padding-top: 120px; padding-bottom: 120px; }
+  .hero-layout { grid-template-columns: 60% 40%; }
+  .pain-layout { gap: var(--space-xl); }
+  .pain-ticker-wrap { height: 420px; }
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .card-hero { grid-column: span 2; }
+  .steps-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+  .proof-layout { gap: var(--space-xl); }
+  .trust-layout { gap: var(--space-xl); }
+  .badge-grid { gap: var(--space-xs); }
+}
+
+/* Responsive: Mobile */
+@media (max-width: 767px) {
+  .section { padding-top: 80px; padding-bottom: 80px; }
+  .s-hero { padding-top: 96px; padding-bottom: 96px; }
+  .hero-layout { grid-template-columns: 1fr; }
+  .hero-visual { display: none; }
+  .pain-layout { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .pain-ticker-wrap { height: 320px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .card-hero { grid-column: span 1; padding: var(--space-lg); }
+  .steps-grid { grid-template-columns: 1fr; gap: 40px; }
+  .proof-layout { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .proof-quote-mark { font-size: 80px; top: -12px; }
+  .trust-layout { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .badge-grid { grid-template-columns: repeat(3, 1fr); }
+  .btn-primary { width: 100%; }
+  .form-row { flex-direction: column; max-width: 100%; }
+  .form-input {
+    border-right: 1px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius-sm);
+  }
+  .form-btn { border-radius: var(--radius-sm); }
+  .eyebrow { font-size: 14px; }
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .logo-bar { gap: var(--space-lg); }
+  .badge-grid { gap: 8px; }
+}
+
+/* Responsive: Small Mobile */
+@media (max-width: 478px) {
+  .section { padding-top: 64px; padding-bottom: 64px; }
+  .s-hero { padding-top: 80px; padding-bottom: 80px; }
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+</style>
+</head>
+<body>
+
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<main id="main-content">
+
+<!-- ============================================================ -->
+<!-- S1: HERO  (bg-dark)                                          -->
+<!-- ============================================================ -->
+<section id="s1-hero" class="section s-hero bg-dark">
+  <div class="container">
+    <div class="hero-layout">
+      <div class="hero-content">
+        <h1 class="h1">All your business data. <span class="accent">One agent</span> that thinks, alerts, and acts.</h1>
+        <p class="lead">Every business tool is blind to everything outside it. Improvado connects marketing, sales, support, product, and finance into one knowledge graph. The agent reasons across all of it and takes action.</p>
+        <div class="hero-cta">
+          <div class="form-row">
+            <label for="hero-email" class="sr-only">Work email</label>
+            <input id="hero-email" type="email" class="form-input" placeholder="work@email.com">
+            <button class="form-btn">Book a demo</button>
+          </div>
+        </div>
+        <div class="hero-trust">
+          <p class="caption">Trusted by 40+ enterprise teams</p>
+          <div class="logo-bar logo-bar-left">
+            <span class="logo-item">Activision Blizzard</span>
+            <span class="logo-item">Asus</span>
+            <span class="logo-item">DocuSign</span>
+            <span class="logo-item">SEGA</span>
+            <span class="logo-item">Snap</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-product-frame" role="img" aria-label="Improvado Agent dashboard preview">
+          <div class="browser-chrome">
+            <span class="browser-dot"></span>
+            <span class="browser-dot"></span>
+            <span class="browser-dot"></span>
+            <div class="browser-bar"></div>
+          </div>
+          <div class="browser-body">
+            <div class="mock-sidebar">
+              <div class="mock-nav-item is-active"></div>
+              <div class="mock-nav-item"></div>
+              <div class="mock-nav-item"></div>
+              <div class="mock-nav-item"></div>
+              <div class="mock-nav-item"></div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-value"></div>
+              <div class="mock-stat-label"></div>
+            </div>
+            <div class="mock-stat-card">
+              <div class="mock-stat-value" style="width: 45%; background: var(--color-violet); opacity: 0.4;"></div>
+              <div class="mock-stat-label"></div>
+            </div>
+            <div class="mock-chart">
+              <div class="mock-bar"></div>
+              <div class="mock-bar"></div>
+              <div class="mock-bar"></div>
+              <div class="mock-bar"></div>
+              <div class="mock-bar"></div>
+              <div class="mock-bar"></div>
+              <div class="mock-bar"></div>
+              <div class="mock-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- S2: PAIN / PROBLEM  (bg-light)                               -->
+<!-- ============================================================ -->
+<section id="s2-pain" class="section bg-light">
+  <div class="container">
+    <div class="pain-layout">
+      <div class="pain-content">
+        <p class="eyebrow">The Problem</p>
+        <h2 class="h2">Your teams have data. They don't have answers.</h2>
+        <p class="body-text" style="color: var(--color-muted); max-width: 100%;">Decisions on gut. Money wasted. Customers lost. Reports still being built. The tools aren't broken — they're just blind to each other.</p>
+        <div>
+          <a href="#s3-solution" class="btn-link">See how it works &rarr;</a>
+        </div>
+      </div>
+      <div class="pain-ticker-wrap" aria-label="Common business data problems">
+        <div class="pain-ticker">
+          <blockquote class="pain-tick-card">
+            <p class="body-text">Three people argue whether last month's campaign worked. Marketing says yes (leads). Sales says no (conversions). Finance can't tell.</p>
+          </blockquote>
+          <blockquote class="pain-tick-card">
+            <p class="body-text">VP Marketing requests a cross-channel report. &ldquo;We'll have it by Friday.&rdquo; It's Monday.</p>
+          </blockquote>
+          <blockquote class="pain-tick-card">
+            <p class="body-text">Product ships a feature. Nobody in marketing knows. The messaging is already wrong.</p>
+          </blockquote>
+          <blockquote class="pain-tick-card">
+            <p class="body-text">CFO asks why spend is up 25%. CMO can't answer because the data is in three unreconciled platforms.</p>
+          </blockquote>
+          <blockquote class="pain-tick-card">
+            <p class="body-text">A major customer files a bug ticket. Nobody connects it to 14 similar tickets. The account churns 3 months later.</p>
+          </blockquote>
+          <!-- Duplicate set for seamless loop -->
+          <blockquote class="pain-tick-card" aria-hidden="true">
+            <p class="body-text">Three people argue whether last month's campaign worked. Marketing says yes (leads). Sales says no (conversions). Finance can't tell.</p>
+          </blockquote>
+          <blockquote class="pain-tick-card" aria-hidden="true">
+            <p class="body-text">VP Marketing requests a cross-channel report. &ldquo;We'll have it by Friday.&rdquo; It's Monday.</p>
+          </blockquote>
+          <blockquote class="pain-tick-card" aria-hidden="true">
+            <p class="body-text">Product ships a feature. Nobody in marketing knows. The messaging is already wrong.</p>
+          </blockquote>
+          <blockquote class="pain-tick-card" aria-hidden="true">
+            <p class="body-text">CFO asks why spend is up 25%. CMO can't answer because the data is in three unreconciled platforms.</p>
+          </blockquote>
+          <blockquote class="pain-tick-card" aria-hidden="true">
+            <p class="body-text">A major customer files a bug ticket. Nobody connects it to 14 similar tickets. The account churns 3 months later.</p>
+          </blockquote>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- S3: SOLUTION STEPS  (bg-dark)                                -->
+<!-- ============================================================ -->
+<section id="s3-solution" class="section bg-dark">
+  <div class="container">
+    <div class="section-header" style="text-align: center;">
+      <p class="eyebrow">How It Works</p>
+      <h2 class="h2" style="margin-left: auto; margin-right: auto;">From scattered data to autonomous intelligence in four steps</h2>
+      <p class="lead" style="margin-left: auto; margin-right: auto; text-align: center;">The agent creates connections, builds context, finds patterns, and takes action. Each step enables the next.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <span class="step-number">01</span>
+        <h3 class="h4 step-title">Connect</h3>
+        <p class="step-desc">500+ pre-built connectors bring your data in. The agent builds custom ones in minutes, not months.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-number">02</span>
+        <h3 class="h4 step-title">Learn</h3>
+        <p class="step-desc">Data flows into the business knowledge graph. The agent maps relationships, learns definitions, builds context.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-number">03</span>
+        <h3 class="h4 step-title">Analyze</h3>
+        <p class="step-desc">With full context, the agent reasons across all data. Patterns, anomalies, and opportunities no single tool can see.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-number">04</span>
+        <h3 class="h4 step-title">Act</h3>
+        <p class="step-desc">The agent takes action: tasks, reports, alerts, budget shifts, platform updates. Every action logged and governed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- S4: PRODUCT FEATURES  (bg-light)                             -->
+<!-- ============================================================ -->
+<section id="s4-features" class="section bg-light">
+  <div class="container">
+    <div class="section-header">
+      <p class="eyebrow">Capabilities</p>
+      <h2 class="h2">What the agent does with full business context</h2>
+    </div>
+    <div class="features-grid">
+      <!-- Hero card (spans 2 cols) -->
+      <div class="card-on-light card-hero">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" aria-hidden="true">
+            <circle cx="12" cy="12" r="2.5"/>
+            <circle cx="4.5" cy="7" r="1.5"/>
+            <circle cx="19.5" cy="7" r="1.5"/>
+            <circle cx="4.5" cy="17" r="1.5"/>
+            <circle cx="19.5" cy="17" r="1.5"/>
+            <line x1="9.8" y1="10.8" x2="5.8" y2="8.2"/>
+            <line x1="14.2" y1="10.8" x2="18.2" y2="8.2"/>
+            <line x1="9.8" y1="13.2" x2="5.8" y2="15.8"/>
+            <line x1="14.2" y1="13.2" x2="18.2" y2="15.8"/>
+          </svg>
+        </div>
+        <h4 class="h4">One knowledge graph</h4>
+        <p class="body-text" style="margin-top: 12px;">All seven data pillars connected: marketing, sales, support, product, finance, communications, and operations. Relationships mapped. Context that compounds daily.</p>
+      </div>
+      <!-- Card 2 -->
+      <div class="card-on-light">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" aria-hidden="true">
+            <path d="M8 6h8"/>
+            <path d="M8 18h8"/>
+            <path d="M10 6v-3"/>
+            <path d="M14 6v-3"/>
+            <path d="M10 18v3"/>
+            <path d="M14 18v3"/>
+            <rect x="6" y="6" width="12" height="12" rx="2"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+        </div>
+        <h4 class="h4">500+ data connectors</h4>
+        <p class="body-text" style="margin-top: 12px;">Pre-built connections to every major platform. The agent builds custom connectors in minutes. 40,000+ metrics and dimensions unified automatically.</p>
+      </div>
+      <!-- Card 3 -->
+      <div class="card-on-light">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" aria-hidden="true">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            <circle cx="18" cy="4" r="2.5" fill="currentColor" stroke="none" opacity="0.4"/>
+          </svg>
+        </div>
+        <h4 class="h4">Proactive alerts</h4>
+        <p class="body-text" style="margin-top: 12px;">The agent finds problems before you do. Anomalies across any connected source, with full context and root cause analysis attached.</p>
+      </div>
+      <!-- Card 4 -->
+      <div class="card-on-light">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 3v2"/>
+            <path d="M12 19v2"/>
+            <path d="M3 12h2"/>
+            <path d="M19 12h2"/>
+            <polygon points="10,8 16,12 10,16" fill="none" stroke="currentColor"/>
+          </svg>
+        </div>
+        <h4 class="h4">Automated actions</h4>
+        <p class="body-text" style="margin-top: 12px;">Pause campaigns, shift budgets, create tasks, send reports, trigger workflows. Every action logged, auditable, and governed.</p>
+      </div>
+      <!-- Card 5 -->
+      <div class="card-on-light">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <polyline points="12,7 12,12 15.5,14"/>
+            <path d="M21 12a9 9 0 0 0-9-9"/>
+            <polyline points="21,3 21,7 17,7"/>
+          </svg>
+        </div>
+        <h4 class="h4">Scheduled intelligence</h4>
+        <p class="body-text" style="margin-top: 12px;">Monday briefings, weekly reports, real-time variance alerts. Intelligence delivered to you, not pulled from a dashboard.</p>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: var(--gap-body-cta);">
+      <a href="#s6-cta" class="btn-primary">Book a demo</a>
+    </div>
+  </div>
+</section>
+
+<!-- Section Divider (light → warm transition) -->
+<hr class="section-divider">
+
+<!-- ============================================================ -->
+<!-- S5: TESTIMONIALS / SOCIAL PROOF  (bg-warm)                   -->
+<!-- ============================================================ -->
+<section id="s5-proof" class="section bg-warm">
+  <div class="container">
+    <div class="section-header">
+      <p class="eyebrow">Trusted By</p>
+      <h2 class="h2">Results that speak for themselves</h2>
+    </div>
+    <div class="proof-layout">
+      <!-- Left: Editorial pull quote -->
+      <div class="proof-quote">
+        <span class="proof-quote-mark" aria-hidden="true">&ldquo;</span>
+        <p class="proof-quote-text">Improvado turned 38 hours of weekly reporting into a Monday morning briefing. The agent connects data we never thought to combine and surfaces insights that changed how we allocate budget across channels.</p>
+        <div class="proof-attr">
+          <p class="proof-attr-name">VP of Marketing Analytics</p>
+          <p class="proof-attr-company">Activision Blizzard</p>
+        </div>
+      </div>
+      <!-- Right: Stats stacked vertically -->
+      <div class="proof-stats">
+        <div class="proof-stat">
+          <span class="stat-num">$2.4M</span>
+          <span class="caption">Saved annually — Activision Blizzard</span>
+        </div>
+        <div class="proof-stat">
+          <span class="stat-num">38 hrs</span>
+          <span class="caption">Reclaimed per analyst, per week</span>
+        </div>
+        <div class="proof-stat">
+          <span class="stat-num">500+</span>
+          <span class="caption">Data sources connected out of the box</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- S6: ENTERPRISE TRUST + CTA  (bg-dark)                        -->
+<!-- ============================================================ -->
+<section id="s6-cta" class="section bg-darker cta-section">
+  <div class="container">
+    <!-- Trust: Two-column split -->
+    <div class="trust-layout">
+      <!-- Left: Headline + Trust Checklist -->
+      <div class="trust-content">
+        <p class="eyebrow">Enterprise Ready</p>
+        <h2 class="h2">Built for enterprise security and scale</h2>
+        <div class="trust-checklist">
+          <div class="trust-check">
+            <span class="trust-check-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+            </span>
+            <span class="trust-check-text">Your raw data never leaves your environment</span>
+          </div>
+          <div class="trust-check">
+            <span class="trust-check-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+            </span>
+            <span class="trust-check-text">Privacy-first: zero-training, metadata-only AI</span>
+          </div>
+          <div class="trust-check">
+            <span class="trust-check-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+            </span>
+            <span class="trust-check-text">500+ data sources connected securely</span>
+          </div>
+          <div class="trust-check">
+            <span class="trust-check-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+            </span>
+            <span class="trust-check-text">Deployed in hours, not months — no code required</span>
+          </div>
+        </div>
+      </div>
+      <!-- Right: Badge Grid (3×2) -->
+      <div class="badge-grid">
+        <div class="badge-item">
+          <span class="badge-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+              <path d="M12 2l8 4v5c0 5.25-3.5 9.75-8 11-4.5-1.25-8-5.75-8-11V6l8-4z"/>
+              <polyline points="9,12 11,14 15,10"/>
+            </svg>
+          </span>
+          <span class="badge-label">SOC 2 Type II</span>
+        </div>
+        <div class="badge-item">
+          <span class="badge-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+              <rect x="5" y="11" width="14" height="10" rx="2"/>
+              <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+              <circle cx="12" cy="16" r="1.5"/>
+            </svg>
+          </span>
+          <span class="badge-label">ISO 27001</span>
+        </div>
+        <div class="badge-item">
+          <span class="badge-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+              <rect x="5" y="11" width="14" height="10" rx="2"/>
+              <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+              <circle cx="12" cy="16" r="1.5"/>
+            </svg>
+          </span>
+          <span class="badge-label">PCI DSS</span>
+        </div>
+        <div class="badge-item">
+          <span class="badge-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+              <circle cx="12" cy="12" r="9"/>
+              <ellipse cx="12" cy="12" rx="4" ry="9"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <line x1="3" y1="15" x2="21" y2="15"/>
+            </svg>
+          </span>
+          <span class="badge-label">GDPR</span>
+        </div>
+        <div class="badge-item">
+          <span class="badge-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+              <circle cx="12" cy="12" r="9"/>
+              <ellipse cx="12" cy="12" rx="4" ry="9"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <line x1="3" y1="15" x2="21" y2="15"/>
+            </svg>
+          </span>
+          <span class="badge-label">CCPA</span>
+        </div>
+        <div class="badge-item">
+          <span class="badge-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+              <circle cx="12" cy="12" r="9"/>
+              <polyline points="9,12 11,14 15,10"/>
+            </svg>
+          </span>
+          <span class="badge-label">HIPAA-Ready</span>
+        </div>
+      </div>
+    </div>
+    <!-- Divider -->
+    <div class="cta-divider"></div>
+    <!-- CTA: Full-width centered -->
+    <div class="cta-container">
+      <h2 class="h2 cta-headline">Connect once. The agent runs your entire business intelligence for you.</h2>
+      <div class="form-row" style="margin-top: var(--space-lg);">
+        <label for="cta-email" class="sr-only">Work email</label>
+        <input id="cta-email" type="email" class="form-input" placeholder="work@email.com">
+        <button class="form-btn">Book a demo</button>
+      </div>
+      <div style="margin-top: var(--space-sm);">
+        <a href="#" class="btn-link" style="font-size: 15px;">Watch the 2-minute demo &rarr;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+</body>
+</html>

@@ -25,13 +25,12 @@ section-hero [full-width, dark bg]
       hero-form-wrapper
         input [email]
         btn-primary [CTA]
-        text-micro [reassurance]
       hero-secondary-cta    ← Low-commitment alternative
       hero-trust-bar
         text-trust          ← One proof statement
         logo-row            ← 5–8 grayscale logos
-    hero-visual [right 45–50% desktop / below or hidden on mobile]
-      img-hero              ← Static illustration or product shot
+    hero-visual [right 45–50% desktop / hidden on mobile]
+      product-frame         ← Browser chrome mockup with product screenshot or video
 ```
 
 ### Content Specs
@@ -40,11 +39,11 @@ section-hero [full-width, dark bg]
 |---|---|
 | Headline | 8–12 words max. `H1`. |
 | Sub-headline | 15–25 words max. 80% opacity on dark bg. |
-| Primary CTA | Single field email form + button. |
-| Micro-text | "Please use your work email" — reassurance copy. |
+| Primary CTA | Single field email form + button. No micro-text below form. |
 | Secondary CTA | Text link: "Watch in 2 min" or similar. |
 | Trust text | One sentence with a specific metric. |
-| Logo bar | 5–8 logos, uniform height, grayscale with hover-to-color. |
+| Logo bar | 5–8 logos. Production: grayscale SVGs. Prototype: uppercase wordmark-style text labels (display font, low opacity). |
+| Hero visual | Product screenshot in browser chrome frame, or embedded demo video. Subtle 3D perspective tilt. Never an empty placeholder. |
 
 ### Visual Hierarchy (strict order)
 1. **Primary**: Headline — largest element, highest contrast
@@ -120,17 +119,49 @@ section-hero [full-width, dark bg]
 - Width: 300–360px desktop, full-width mobile
 
 ### Logo Bar
+
+**Production (real logos):**
 - Logo height: 24–32px uniform (maintain aspect ratio)
 - Grayscale + 0.6 opacity default → full color on hover, 0.3s ease
 - Gap: 40–48px desktop, 24px mobile
-- Center-aligned, wrap to 2 rows on mobile if needed
+- Left-aligned in hero, center-aligned in other sections
+
+**Prototype (text labels):**
+- Font: display font (Raleway), 15px, weight 700, uppercase, letter-spacing 0.04em
+- Color: white at 0.25 opacity on dark bg, deep purple at 0.2 opacity on light bg
+- Hover: opacity increases to 0.5/0.4
+- This looks like stylized wordmarks rather than plain body-text labels
+- Gap: 48px desktop, 32px mobile
+
+**Never:** Plain body-font text labels at default weight — this looks like placeholder content, not a trust signal.
 
 ### Hero Visual
+
+**Product frame approach (recommended):**
+- Browser chrome mockup: thin top bar with 3 dots + URL bar placeholder
+- Inside: actual product screenshot (production) or mock dashboard UI (prototype)
+- Subtle 3D perspective: `perspective(1200px) rotateY(-2deg) rotateX(1deg)`
+- On hover: perspective flattens to 0deg (smooth 0.3s ease)
+- Deep shadow: `0 24px 80px rgba(0,0,0,0.4), 0 8px 32px rgba(128,104,255,0.15)`
+- Border radius: 16px on frame, overflow hidden
+
+**Video approach (alternative):**
+- Same browser chrome frame
+- Embed a looping product demo video (autoplay, muted, no controls)
+- Poster frame for loading state
+
+**Prototype mock dashboard:**
+- Dark interior (darker than section bg)
+- Sidebar with nav items (thin opacity bars, one active in violet)
+- 2 stat cards with colored value bars (mint, violet)
+- 1 chart area with bar chart (varying heights, one mint accent bar)
+- All elements use opacity 0.05–0.35 range to feel subtle, not busy
+
+**Rules:**
+- **Mobile (≤767px): `display: none`** — hide entirely. The hero text and form are what matter on mobile.
+- Never show an empty colored rectangle — it looks like a broken image.
+- Alt text: descriptive (e.g., "Improvado Agent dashboard preview")
 - Max width: 45–50% of container on desktop
-- Format: SVG (< 35kb) or WebP (< 100kb)
-- Static only. CSS hover scale 1.03x max.
-- **Mobile (≤767px): `display: none`** — hide entirely. The hero text and form are what matter on mobile. Showing the visual pushes the CTA below the fold, killing mobile conversion.
-- Alt text: descriptive (not "hero image")
 
 ### Motion
 - Headline: fade-in-up (200ms delay, 400ms duration)

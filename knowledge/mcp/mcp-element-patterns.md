@@ -123,6 +123,86 @@ TextBlock "testimonial-attribution-1" → set text
 TextLink "testimonial-link-1"         → set text, set link
 ```
 
+### Pain Section — Split Layout + Ticker (6 levels)
+
+Homepage pain section. Left column: content (eyebrow, headline, closer text, CTA). Right column: ticker wrapper with scrolling pain cards. Cards are duplicated for seamless animation loop.
+
+> See `knowledge/sections/pain.md` § Homepage Variant and `knowledge/design-patterns.md` § Split Layout + Ticker.
+
+**Call 1** — Outer shell (3 levels):
+```
+Section "section-pain"
+  └── Container "container-pain"
+        ├── DivBlock "pain-content"
+        └── DivBlock "pain-ticker-wrap"
+```
+
+**Call 2** — Left content (parent = pain-content):
+```
+TextBlock "eyebrow-pain"              → set text "THE PROBLEM"
+Heading "heading-pain"                → set text, heading level 2
+Paragraph "pain-closer-text"          → set text (why_tools_fail)
+TextLink "pain-cta-link"              → set text "See how it works →", set link "#solution"
+```
+
+**Call 3** — Ticker container (parent = pain-ticker-wrap):
+```
+DivBlock "pain-ticker"
+  ├── DivBlock "pain-card-1"
+  │     └── Paragraph "pain-text-1"
+  ├── DivBlock "pain-card-2"
+  │     └── Paragraph "pain-text-2"
+  ├── DivBlock "pain-card-3"
+  │     └── Paragraph "pain-text-3"
+  └── (continue for cards 4–5)
+```
+
+**Call 4** — Duplicate cards for loop (parent = pain-ticker, after last card):
+```
+DivBlock "pain-card-6-dup"            → duplicate of card 1
+  └── Paragraph "pain-text-6-dup"
+DivBlock "pain-card-7-dup"            → duplicate of card 2
+  └── Paragraph "pain-text-7-dup"
+(continue for cards 8–10)
+```
+
+**After building**: Apply CSS embed for `@keyframes pain-scroll` animation and `mask-image` gradient fade. Set `pain-ticker-wrap` to fixed height (500px) with `overflow: hidden`. Alternative: use Webflow IX2 "Loop" interaction on `pain-ticker`.
+
+**Use-case variant**: For use-case pages, skip the split layout. Build as vertical stack: `pain-bullets-wrapper` → `pain-card` × 3–5. See `knowledge/sections/pain.md` for the stacked layout spec.
+
+---
+
+### Pain Section — Stacked Layout (4 levels)
+
+Use-case landing pages. Simple vertical stack of left-bordered pain cards.
+
+**Call 1** — Outer shell (3 levels):
+```
+Section "section-pain"
+  └── Container "container-pain"
+        └── DivBlock "pain-header"
+```
+
+**Call 2** — Header + bullets (parent = container-pain):
+```
+DivBlock "pain-bullets-wrapper"
+  ├── DivBlock "pain-card-1"
+  │     └── Paragraph "pain-text-1"
+  ├── DivBlock "pain-card-2"
+  │     └── Paragraph "pain-text-2"
+  └── DivBlock "pain-card-3"
+        └── Paragraph "pain-text-3"
+```
+
+**Call 3** — Closer + CTA (parent = container-pain):
+```
+DivBlock "pain-closer"
+  └── Paragraph "pain-closer-text"
+TextLink "pain-cta-link"              → set text "See how it works →", set link "#solution"
+```
+
+---
+
 ### Sticky Nav (3 levels — fits in one call)
 
 ```

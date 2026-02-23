@@ -432,6 +432,19 @@ The `.accent` class inherits color from the context-dependent rules above (mint 
 
 ## Cards
 
+### Card × Background Selection Rule
+
+Pick the card class based on the **parent section background**:
+
+| Section Background | Card Class | Card Background | Why |
+|---|---|---|---|
+| `bg-white` (`#FFFFFF`) | `.card-light` | `#f4f5ff` (card-bg) | Lavender tint visible against pure white |
+| `bg-light` (`#f1f5ff`) | `.card-on-light` | `#FFFFFF` (white) | White stands out from light-blue bg. **card-bg is invisible here.** |
+| `bg-warm` (`#f9f8f6`) | `.card-on-light` | `#FFFFFF` (white) | White stands out from warm bg |
+| `bg-dark` (`#20124d`) | `.card-dark` | `#2d1b6b` (dark-card) | Dark-on-dark with border contrast |
+
+**Critical**: `card-light` on `bg-light` = invisible cards (3 hex values apart). Always use `card-on-light` on `bg-light` and `bg-warm` sections.
+
 ```css
 .card-grid {
   display: grid;
@@ -469,11 +482,12 @@ The `.accent` class inherits color from the context-dependent rules above (mint 
   padding: var(--space-lg);
   border: var(--border-subtle-light);
   box-shadow: var(--shadow-xs);
-  transition: border-color var(--ease-smooth), box-shadow var(--ease-smooth);
+  transition: border-color var(--ease-smooth), box-shadow var(--ease-smooth), transform var(--ease-smooth);
 }
 .card-on-light:hover {
   border-color: rgba(128,104,255,0.2);
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 ```
 
@@ -616,28 +630,98 @@ Used for S5 on warm background:
 
 ---
 
-## Stat Row
+## Social Proof — Split Layout (S5)
+
+Two-column grid: editorial pull quote on the left, stats stacked vertically on the right.
 
 ```css
-.stat-row {
-  display: flex;
-  justify-content: center;
-  gap: var(--gap-stats);
+.proof-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: start;
   margin-top: var(--space-xl);
 }
 
-.stat-item {
+.proof-quote { position: relative; }
+
+.proof-quote-mark {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 120px;
+  line-height: 0.8;
+  color: var(--color-violet);
+  opacity: 0.1;
+  position: absolute;
+  top: -20px;
+  left: -8px;
+  user-select: none;
+}
+
+.proof-quote-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-xl);
+  line-height: 1.7;
+  color: var(--color-body-text);
+  position: relative;
+  z-index: 1;
+}
+
+.proof-attr {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(32,18,77,0.08);
+}
+
+.proof-attr-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--color-body-text);
+}
+
+.proof-attr-company {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+
+.proof-stats {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-xs);
-  text-align: center;
+  gap: 0;
 }
+
+.proof-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-lg) 0;
+  border-bottom: 1px solid rgba(32,18,77,0.06);
+}
+.proof-stat:first-child { padding-top: 0; }
+.proof-stat:last-child { border-bottom: none; padding-bottom: 0; }
+.proof-stat .stat-num { color: var(--color-violet); }
+.proof-stat .caption { color: var(--color-muted); }
+```
+
+Responsive:
+```css
+@media (max-width: 991px) { .proof-layout { gap: var(--space-xl); } }
+@media (max-width: 767px) { .proof-layout { grid-template-columns: 1fr; gap: var(--space-xl); } }
 ```
 
 ---
 
 ## Pain Cards
+
+### Stacked Layout (use-case pages)
+
+Simple vertical stack for use-case pages where pain section has 3–4 bullets.
 
 ```css
 .pain-bullets {
@@ -655,6 +739,84 @@ Used for S5 on warm background:
   background: var(--color-white);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   box-shadow: var(--shadow-xs);
+}
+```
+
+### Split Layout + Ticker (homepage)
+
+Split layout: left column has headline + closer text + CTA. Right column has a continuously scrolling vertical ticker of pain cards that fades in/out at top and bottom. Cards are duplicated in HTML for seamless CSS loop (`aria-hidden="true"` on duplicates). Hover pauses animation. `prefers-reduced-motion` disables animation globally.
+
+```
+[  Content (left)  ] [  Ticker (right)        ]
+[  Eyebrow         ] [  ┌── Card 1 ──┐ ← fade ]
+[  Headline        ] [  └────────────┘         ]
+[  Closer text     ] [  ┌── Card 2 ──┐         ]
+[  CTA link        ] [  └────────────┘         ]
+[                  ] [  ┌── Card 3 ──┐         ]
+[                  ] [  └────────────┘ ← fade  ]
+```
+
+```css
+.pain-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: center;
+}
+
+.pain-content {
+  display: flex;
+  flex-direction: column;
+}
+.pain-content .eyebrow { margin-bottom: var(--gap-label-heading); }
+.pain-content .h2 { margin-bottom: var(--gap-heading-body); }
+.pain-content .body-text { margin-bottom: var(--gap-body-cta); }
+
+.pain-ticker-wrap {
+  position: relative;
+  height: 500px;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+.pain-ticker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  animation: pain-scroll 28s linear infinite;
+}
+.pain-ticker:hover {
+  animation-play-state: paused;
+}
+
+@keyframes pain-scroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.pain-tick-card {
+  background: var(--color-white);
+  padding: var(--space-md) var(--space-md) var(--space-md) 28px;
+  border-left: 2px solid rgba(128,104,255,0.2);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: 0 1px 8px rgba(32,18,77,0.05);
+}
+.pain-tick-card .body-text {
+  color: var(--color-muted);
+  max-width: 100%;
+}
+```
+
+Responsive overrides:
+```css
+@media (max-width: 991px) {
+  .pain-layout { gap: var(--space-xl); }
+  .pain-ticker-wrap { height: 420px; }
+}
+@media (max-width: 767px) {
+  .pain-layout { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .pain-ticker-wrap { height: 320px; }
 }
 ```
 
@@ -817,6 +979,345 @@ Used for S5 on warm background:
 
 ---
 
+## Solution Steps Grid
+
+Used for S3 on homepage (dark bg). Four-column numbered steps.
+
+```css
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+}
+
+.step-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.step-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 56px;
+  line-height: 1.0;
+  margin-bottom: var(--space-sm);
+}
+
+.bg-dark .step-number { color: var(--color-mint); }
+.bg-light .step-number { color: var(--color-violet); }
+
+.step-title {
+  margin-bottom: 12px;
+}
+
+.step-desc {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  max-width: 280px;
+}
+
+.bg-dark .step-desc { color: var(--color-muted-dark); }
+```
+
+Responsive overrides:
+```css
+/* Tablet */
+@media (max-width: 991px) {
+  .steps-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+}
+/* Mobile */
+@media (max-width: 767px) {
+  .steps-grid { grid-template-columns: 1fr; gap: 40px; }
+}
+```
+
+---
+
+## Enterprise Trust — Split Layout (S6)
+
+Two-column grid for S6 on dark background: checklist left, badge grid right. Followed by CTA divider and centered CTA.
+
+```css
+.trust-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: start;
+  margin-bottom: var(--space-3xl);
+}
+
+.trust-content { display: flex; flex-direction: column; }
+.trust-content .eyebrow { margin-bottom: var(--gap-label-heading); }
+.trust-content .h2 { margin-bottom: var(--space-xl); }
+
+.trust-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.trust-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.trust-check-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--color-mint);
+  margin-top: 2px;
+}
+.trust-check-icon svg { width: 100%; height: 100%; }
+
+.trust-check-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--color-muted-dark);
+}
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+}
+
+.badge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-md) var(--space-sm);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  transition: border-color var(--ease-smooth), background var(--ease-smooth);
+}
+.badge-item:hover {
+  border-color: rgba(128,104,255,0.2);
+  background: rgba(255,255,255,0.06);
+}
+
+.badge-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-mint);
+}
+.badge-icon svg { width: 100%; height: 100%; }
+
+.badge-label {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+}
+
+.cta-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(128,104,255,0.12);
+  margin-bottom: var(--space-3xl);
+}
+```
+
+Responsive:
+```css
+@media (max-width: 991px) { .trust-layout { gap: var(--space-xl); } }
+@media (max-width: 767px) {
+  .trust-layout { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .badge-grid { grid-template-columns: repeat(3, 1fr); } /* stays 3-col */
+}
+```
+
+---
+
+## Email Capture Form
+
+Used in hero (S1) and final CTA (S6) on dark backgrounds.
+
+```css
+.form-row {
+  display: flex;
+  gap: 0;
+  max-width: 480px;
+}
+
+.form-input {
+  flex: 1;
+  height: 52px;
+  padding-left: var(--space-sm);
+  padding-right: var(--space-sm);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-size: 16px;
+  outline: none;
+  transition: border-color var(--ease-default), background var(--ease-default);
+}
+.form-input::placeholder { color: rgba(255,255,255,0.3); }
+.form-input:focus {
+  border-color: var(--color-violet);
+  background: rgba(255,255,255,0.12);
+}
+
+.form-btn {
+  height: 52px;
+  padding-left: 28px;
+  padding-right: 28px;
+  background: var(--color-violet);
+  color: var(--color-white);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter var(--ease-default);
+  box-shadow: var(--shadow-violet);
+}
+.form-btn:hover { filter: brightness(1.12); }
+
+.micro-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-xs);
+  line-height: var(--lh-caption);
+  color: rgba(255,255,255,0.50);
+  margin-top: var(--space-xs);
+}
+```
+
+Responsive overrides:
+```css
+@media (max-width: 767px) {
+  .form-row { flex-direction: column; max-width: 100%; }
+  .form-input {
+    border-right: 1px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius-sm);
+  }
+  .form-btn { border-radius: var(--radius-sm); }
+}
+```
+
+---
+
+<!-- Old .badge-row, .trust-statements classes removed — replaced by Enterprise Trust Split Layout above -->
+
+---
+
+## Feature Icon Container
+
+Used in feature cards (S4). Icon inherits theme color.
+
+```css
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 20px;
+  color: var(--color-violet);
+}
+
+.bg-dark .feature-icon { color: var(--color-mint); }
+.card-light .feature-icon { color: var(--color-violet); }
+
+.feature-icon svg {
+  width: 100%;
+  height: 100%;
+}
+```
+
+---
+
+## Pain Card Variants
+
+**Homepage**: Use `.pain-layout` + `.pain-ticker-wrap` + `.pain-tick-card` (split layout with scrolling ticker). See Pain Cards § Split Layout + Ticker above.
+
+**Use-case pages**: Use `.pain-bullets` + `.pain-card` / `.pain-card-featured` (vertical stack).
+
+```css
+/* Featured pain card — stacked layout variant (use-case pages) */
+.pain-card-featured {
+  border-left: 4px solid var(--color-violet);
+  padding-left: var(--space-md);
+  padding-top: var(--space-md);
+  padding-bottom: var(--space-md);
+  background: var(--color-card-bg);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.pain-card-featured .body-text {
+  font-weight: 500;
+  font-size: var(--text-lg);
+  line-height: var(--lh-lead);
+}
+```
+
+---
+
+## Section Divider
+
+1px separator between adjacent light-family sections (light → warm, white → light).
+
+```css
+.section-divider {
+  height: 1px;
+  background: rgba(128,104,255,0.08);
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+```
+
+---
+
+## Container Pain (800px)
+
+Narrower container for pain section content to keep bullets punchy.
+
+```css
+.container-pain {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+}
+
+@media (max-width: 767px) {
+  .container-pain {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+@media (max-width: 478px) {
+  .container-pain {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+```
+
+---
+
 ## Responsive Breakpoints
 
 Desktop-first approach (matching brand guide methodology).
@@ -828,7 +1329,8 @@ Desktop-first approach (matching brand guide methodology).
   .s-hero { padding-top: 120px; padding-bottom: 120px; }
   .hero-layout { grid-template-columns: 60% 40%; }
   .card-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-  .stat-row { gap: var(--space-lg); }
+  .proof-layout { gap: var(--space-xl); }
+  .trust-layout { gap: var(--space-xl); }
 }
 
 /* Mobile (max-width: 767px) */
@@ -838,7 +1340,9 @@ Desktop-first approach (matching brand guide methodology).
   .hero-layout { grid-template-columns: 1fr; }
   .hero-visual { display: none; }
   .card-grid { grid-template-columns: 1fr; }
-  .stat-row { flex-direction: column; gap: var(--space-lg); }
+  .proof-layout { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .trust-layout { grid-template-columns: 1fr; gap: var(--space-xl); }
+  .badge-grid { grid-template-columns: repeat(3, 1fr); }
   .cta-buttons { flex-direction: column; width: 100%; }
   .cta-buttons .btn-primary,
   .cta-buttons .btn-outline { width: 100%; }

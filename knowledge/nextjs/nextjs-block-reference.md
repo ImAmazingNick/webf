@@ -83,9 +83,14 @@ interface PainPointsBlock extends BlockBase {
   headline?: string                    // Optional section headline
   points: string[]                     // Array of pain bullet strings
   summary: string                      // "Why tools fail" closer text
+  layout?: 'stacked' | 'split-ticker' // Default: 'stacked'. Homepage: 'split-ticker'
   theme?: 'light' | 'dark' | 'warm'
 }
 ```
+
+> **Homepage variant:** Set `layout: 'split-ticker'` for the homepage pain section. This renders as a split layout with content on the left and an animated vertical ticker of pain cards on the right. The PageBuilder component handles the CSS animation and card duplication. Use-case pages use `'stacked'` (default). See `knowledge/design-patterns.md` § Split Layout + Ticker and `knowledge/sections/pain.md` § Homepage Variant.
+
+> **Card visibility:** When `theme: 'light'`, cards must use white background (not card-lavender #f4f5ff) to maintain visibility. See `knowledge/design-patterns.md` § Card × Background Visibility Rule.
 
 ### 4. `platformBlock`
 
@@ -331,6 +336,7 @@ S8 ctaBlock         → dark
 | `problem.pain_bullets` | `points` | Array of strings. Strip leading `- → ` prefix from each bullet. |
 | `problem.why_tools_fail` | `summary` | Copy verbatim. |
 | — | `headline` | Optional. If the messaging file has a section headline, include it. |
+| — | `layout` | `"split-ticker"` for homepage, `"stacked"` for use-case pages. |
 | — | `theme` | `"light"` |
 | — | `_key` | `"s2-pain"` |
 

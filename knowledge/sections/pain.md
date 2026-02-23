@@ -263,6 +263,49 @@ pain-cta-link            "See how it works →" text link
 
 ---
 
+## Homepage Variant: Split Layout + Ticker
+
+> The default layout above (vertical stack of pain cards) works for use-case landing pages. For the **homepage**, use the split layout + ticker pattern instead. It adds visual energy and avoids the monotony of stacked cards.
+
+### What It Is
+
+A two-column split layout:
+- **Left column**: Eyebrow, headline, closer text ("why tools fail"), transition CTA
+- **Right column**: Vertical ticker of pain cards scrolling upward continuously
+
+The ticker creates the illusion of an infinite stream of real-world pain scenarios flowing past — fading in at the bottom, fading out at the top. Hover pauses the scroll. `prefers-reduced-motion` disables animation.
+
+### Why This Pattern
+
+| Approach Tried | Result | Lesson |
+|---|---|---|
+| Vertical stack of cards | Boring, monotonous | Fine for 3 items, breaks at 5 |
+| Bento zigzag grid (3-col with nth-child spans) | Too busy, uneven sizes, hard to read | Complex grids + short text = cramped |
+| 2-column equal grid with left-border accent | Clean but generic, "AI-default" feel | Safe but lacks visual energy |
+| **Split layout + ticker** | Modern, clean, engaging | Motion is the design statement, cards stay minimal |
+
+### Key Design Decisions
+
+1. **No department tags.** Tags like "Marketing · Sales · Finance" added visual noise without functional value on a static page. Content speaks for itself.
+2. **Cards are minimal.** White bg, left-border accent, muted text, subtle shadow. The animation does the design work — don't over-style the cards.
+3. **Closer text moves to left column.** Instead of a centered block below cards, the "why tools fail" text lives alongside the headline as supporting context.
+4. **Cards are duplicated in HTML.** The second set (with `aria-hidden="true"`) enables seamless CSS `translateY(-50%)` loop without JavaScript.
+
+### Target Implementation Notes
+
+**HTML**: See `html-element-patterns.md` § HP-S2 and `html-style-reference.md` § Split Layout + Ticker.
+
+**Next.js**: The `painPointsBlock` interface supports `points[]` + `summary`. For the homepage variant, recommend adding a `layout: 'split-ticker'` field to PageBuilder. Until supported, use `painPointsBlock` with a code comment: `// Homepage: render as split-ticker layout`.
+
+**Webflow**: Build as two-column grid section. Right column is a fixed-height DivBlock with `overflow: hidden`. Inner DivBlock contains duplicated pain cards. Animate with Webflow IX2 "Loop" interaction (translate Y) or custom CSS embed for `@keyframes`. Apply gradient fade mask via CSS embed.
+
+### Cross-Reference
+
+See `knowledge/design-patterns.md` § Split Layout + Ticker for the reusable pattern spec.
+See `knowledge/design-patterns.md` § Card × Background Visibility Rule for card color safety.
+
+---
+
 ## Common Mistakes
 
 | Mistake | Impact | Fix |
@@ -274,3 +317,6 @@ pain-cta-link            "See how it works →" text link
 | Missing transition CTA | Lose ready-to-convert visitors at 25% scroll | Always include "See how it works →" text link |
 | Closer text too long (3+ sentences) | Reads as a lecture, not a bridge | 1–2 sentences max. Name the failure, move on. |
 | Using mint on light bg | WCAG fail (1.5:1 contrast) | Use violet `#8068ff` for accents on light backgrounds |
+| Card-light on bg-light | Cards invisible — 3 hex apart | Use white cards with shadow on light sections |
+| Bento grid with text content | Uneven sizes cramp text, looks busy | Use equal-width grids or split layout instead |
+| Department tags on static pages | Visual noise, no filtering function | Remove tags unless interactive |

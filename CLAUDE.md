@@ -28,18 +28,24 @@ All build specs live in `knowledge/`. Read the relevant files before any Webflow
 - `.claude/agents/html-generator.md` — Code generation agent. Reads messaging, writes HTML files to `output/html/`.
 
 ### Brand
-- `knowledge/branding/improvado-agent.md` — Colors, typography, tone, imagery, section rhythm, accessibility rules.
+- `knowledge/branding/TASTE.md` — **Aesthetic philosophy and guardrails.** Taste Dials, anti-vibes, decision framework, copy taste rules. Read this first for *why* decisions were made.
+- `knowledge/branding/improvado-agent.md` — **Implementation tokens and specs.** Colors, typography, tone, imagery, section rhythm, accessibility rules. Read this for *how* to build.
+- **Read both brand files** before any build. TASTE.md governs judgment calls; improvado-agent.md governs exact values.
 - **Critical:** Mint (`#8affbc`) on white/light backgrounds fails WCAG. Never use mint text on light bg.
 - **Font pairing:** Raleway (display/headlines) + Inter (body/UI). Never use Raleway for body text.
 - **Section rhythm:** Never repeat same background on adjacent sections. Dark → Light → Tinted → Dark.
+- **Anti-vibes:** If output feels like any item in TASTE.md's "We Strictly Refuse" list, redo it.
 
 ### Pages
 - `knowledge/pages/homepage.md` — Homepage spec (6–8 sections).
 - `knowledge/pages/use-case.md` — Use case landing page spec (8 sections). Maps to messaging files.
 
+### Design Patterns (cross-target)
+- `knowledge/design-patterns.md` — **Reusable layout primitives for all targets.** 5 layout patterns (Vertical Stack, Simple Grid, Split Layout + Ticker, Bento Grid, Marquee), pattern selection guide, Card × Background visibility rule, layout complexity guidelines, section rhythm, mint safety. **Read this before choosing a layout for any section with repeated items.**
+
 ### Sections
 - `knowledge/sections/hero.md` — Hero section spec.
-- `knowledge/sections/pain.md` — Pain/Problem section spec (S2).
+- `knowledge/sections/pain.md` — Pain/Problem section spec (S2). Includes homepage variant (split layout + ticker).
 - `knowledge/sections/solution-steps.md` — Solution Steps section spec (S3).
 - `knowledge/sections/product-features.md` — Product Features section spec (S4).
 - `knowledge/sections/testimonials.md` — Testimonials/Social Proof section spec (S5/S7).
@@ -56,10 +62,16 @@ All build specs live in `knowledge/`. Read the relevant files before any Webflow
 - `.claude/agents/evaluator.md` — Read-only inspector. Produces structured report with issue IDs + fix hints.
 - `.claude/agents/healer.md` — Fix-only agent. Applies targeted repairs in severity order.
 
+### Assets
+- `knowledge/assets/icons.md` — Inline SVG icon library (12 icons). 1.8px stroke, data-node aesthetic. Feature cards, trust badges.
+
 ### Messaging
 
 **Core (foundational — feeds homepage + all pages):**
 - `knowledge/messaging/core/knowledge-graph.md` — Product thesis, 7 data pillars, flywheel, Claude Code analogy, messaging derivatives for homepage/pitch/enterprise/conference.
+
+**Homepage (structured fields for all 6 sections):**
+- `knowledge/messaging/homepage.md` — Finalized copy for homepage. Fields map 1:1 to homepage HTML patterns. Generator uses verbatim — no interpretation.
 
 **Use cases (one file per landing page):**
 - `knowledge/messaging/_TEMPLATE.md` — Blank template for new use cases.
@@ -167,14 +179,16 @@ Never use: "revolutionary", "game-changing", "AI-powered", "best-in-class", "ult
 7. Run `@orchestrator` with `target=homepage`, `mode=nextjs`, `file_path=output/nextjs/pages/homepage.ts`
 
 ### Homepage — HTML (static)
-1. Read `knowledge/html/html-element-patterns.md` (section-to-HTML mapping)
+1. Read `knowledge/html/html-element-patterns.md` (section-to-HTML mapping, includes Homepage Patterns)
 2. Read `knowledge/pages/homepage.md` (structure + layout)
-3. Read `knowledge/messaging/core/knowledge-graph.md` (core messaging)
+3. Read `knowledge/messaging/homepage.md` (structured homepage messaging — verbatim copy source)
 4. Read `knowledge/branding/improvado-agent.md` (brand rules)
-5. Read `knowledge/html/html-style-reference.md` (CSS variables and components)
-6. Run `@html-generator` with page_type=homepage
-7. Output lands in `output/html/pages/homepage.html`
-8. Run `@orchestrator` with `target=homepage`, `mode=html`, `file_path=output/html/pages/homepage.html`
+5. Read `knowledge/branding/TASTE.md` (aesthetic philosophy)
+6. Read `knowledge/html/html-style-reference.md` (CSS variables and components)
+7. Read `knowledge/assets/icons.md` (inline SVG icons for feature cards and trust badges)
+8. Run `@html-generator` with page_type=homepage
+9. Output lands in `output/html/pages/homepage.html`
+10. Run `@orchestrator` with `target=homepage`, `mode=html`, `file_path=output/html/pages/homepage.html`
 
 ### Quality assurance
 After building any section or page, invoke the evaluation loop:
