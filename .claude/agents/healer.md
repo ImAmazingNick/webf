@@ -32,6 +32,22 @@ Tools available:
 - `Edit` → modify the generated `.ts` file
 - `Grep` → verify banned words removed, content updated
 
+### Creative Mode
+
+**Inputs from orchestrator:**
+- `target` — campaign name (e.g., "revenue-attribution-launch")
+- `file_path` — campaign output directory (e.g., `output/creatives/revenue-attribution-launch/`)
+- `evaluation_report` — full report from evaluator with per-ad grades and issue details
+
+Tools available:
+- `Read` → read campaign.md and output PNGs (vision) to verify fixes
+- `Edit` → modify campaign.md (copy, prompts, config, seeds, negative prompts, ref-image)
+- `Bash` → run `scripts/ad.ts` with targeted flags:
+  - `npx tsx scripts/ad.ts render campaign.md --variant=N` — re-render text overlay only
+  - `npx tsx scripts/ad.ts generate campaign.md --variant=N` — regenerate background only
+  - `npx tsx scripts/ad.ts refine campaign.md --variant=N` — img2img refinement
+- `Grep` → verify banned words removed from campaign.md after edit
+
 ---
 
 ## Fix Protocol
@@ -136,6 +152,38 @@ Within a severity level, fix in the order listed in the report (issue ID order).
 | Missing `**accent**` in hero title | `Edit` → read messaging file, restore the `**accent**` markup |
 | Pain bullet prefix not stripped | `Edit` → remove the `- → ` prefix from each string in the points array |
 | Unparsed markdown table | `Edit` → parse the raw markdown into structured objects matching the block interface |
+
+### Creative Mode Fixes
+
+**Inputs from orchestrator:**
+- `target` = campaign name
+- `file_path` = campaign output directory (e.g., `output/creatives/revenue-attribution-launch/`)
+- `evaluation_report` = full report with issue details and grades per ad
+
+**Tools available:**
+- `Edit` → modify campaign.md (copy, prompts, config, negative prompts)
+- `Bash` → re-run `scripts/ad.ts` with targeted flags (`--variant=N`, `refine`, `render`)
+- `Read` → read campaign.md and output PNGs to verify fixes
+
+**Fix decision tree** — choose the lightest fix that solves the problem:
+
+| Issue | Diagnosis | Fix Action |
+|---|---|---|
+| Banned word (B1) / exclamation (B2) | Copy violation | `Edit` campaign.md → fix text → `Bash` `npx tsx scripts/ad.ts render campaign.md --variant=N` |
+| Word count violation | Copy too long/short | `Edit` campaign.md → rewrite headline/body/CTA → `Bash` re-render with `--variant=N` |
+| Text unreadable (T1-T3) | Overlay too weak | `Edit` campaign.md → set `- overlay: dark` → `Bash` re-render with `--variant=N` |
+| Text still unreadable after overlay | Background too busy | `Edit` campaign.md → simplify prompt → `Bash` re-generate with `--variant=N` |
+| AI text artifacts (A1) | Model produced text | `Edit` campaign.md → new seed + add `- negative-prompt: text, words, letters, writing, characters` → `Bash` re-generate with `--variant=N` |
+| Visual distortions (A2) | Bad generation | `Edit` campaign.md → simplify prompt (remove specific objects) → `Bash` re-generate with `--variant=N` |
+| Logo invisible (L2) | Wrong logo variant | `Edit` campaign.md → swap logo path (light ↔ dark) → `Bash` re-render with `--variant=N` |
+| Blend mode broken (L3) | Wrong prompt for layout | `Edit` campaign.md → for floating-element: ensure "on pure black background" in prompt; for stat-hero: use atmospheric texture not scene → `Bash` re-generate with `--variant=N` |
+| Missing brand colors (V1) | Prompt lacks color refs | `Edit` campaign.md → add hex codes (#20124d, #8068ff, #8affbc) to prompt → `Bash` re-generate with `--variant=N` |
+| Generic feel (V2) | Prompt too generic | `Edit` campaign.md → use different prompt pattern from creative-design-guide.md → `Bash` re-generate with `--variant=N` |
+| Composition 90% right | Minor refinement needed | `Edit` campaign.md → add `- ref-image:` pointing to current background + `- strength: 0.4` + adjust prompt → `Bash` `npx tsx scripts/ad.ts refine campaign.md --variant=N` |
+| Platform safe zone (P1-P3) | Content in wrong zone | `Edit` campaign.md → add "leave clear space in [zone]" to prompt → `Bash` re-generate with `--variant=N` |
+| Missing negative-prompt | No exclusion field | `Edit` campaign.md → add `- negative-prompt: text, words, letters, writing, characters, watermarks, logos` to variant → `Bash` re-generate with `--variant=N` |
+
+**Key principle:** Use `--variant=N` for ALL regeneration/re-rendering. Never re-process the entire campaign for a single variant's issue. Use `refine` when the composition is close but needs adjustment.
 
 ---
 

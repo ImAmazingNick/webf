@@ -5,11 +5,20 @@
  * Reads a Markdown campaign brief — no JSON configs.
  *
  * Usage:
- *   npx tsx scripts/ad.ts generate campaign.md          # generate backgrounds
- *   npx tsx scripts/ad.ts render campaign.md            # composite text → PNG
- *   npx tsx scripts/ad.ts full campaign.md              # both in sequence
- *   npx tsx scripts/ad.ts generate campaign.md --explore # use cheap model
- *   npx tsx scripts/ad.ts generate campaign.md --dry-run # parse only, no API
+ *   npx tsx scripts/ad.ts generate campaign.md            # generate backgrounds
+ *   npx tsx scripts/ad.ts render campaign.md              # composite text → PNG
+ *   npx tsx scripts/ad.ts full campaign.md                # both in sequence
+ *   npx tsx scripts/ad.ts refine campaign.md --variant=N  # img2img refinement
+ *   npx tsx scripts/ad.ts generate campaign.md --explore  # use cheap model
+ *   npx tsx scripts/ad.ts generate campaign.md --dry-run  # parse only, no API
+ *
+ * Flags:
+ *   --explore          Use explore-model (cheap/fast) instead of final-model
+ *   --dry-run          Parse campaign.md and print JSON — no API calls
+ *   --variant=N        Process only variant N (1-indexed)
+ *   --concurrency=N    Max parallel API calls (default: 4)
+ *   --max-retries=N    Max retries per image (default: 3, or 10 with --explore)
+ *   --no-cache         Skip image cache, force regeneration
  *
  * Layouts (set via `- layout:` per variant in campaign.md):
  *   classic          — Full-bleed AI background + gradient overlay + text (default)
@@ -34,6 +43,7 @@ import { chromium } from "playwright";
 import type { Browser } from "playwright";
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from "node:fs";
 import { dirname, resolve, extname, join } from "node:path";
+import { createHash } from "node:crypto";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -45,6 +55,8 @@ interface CampaignConfig {
   headlineColor: string;
   exploreModel: string;
   finalModel: string;
+  fallbackModels: string[];
+  maxRetries: number;
   output: string;
 }
 
@@ -61,6 +73,9 @@ interface Variant {
   rotate: boolean; // subtle rotation on headline/stat for energy
   bgFile: string; // user-provided background image path (skips AI generation for this variant)
   mask: string; // "angular"|"circle"|"rounded"|"fade"|"" — CSS mask/clip on background image
+  negativePrompt: string; // what to avoid in generation (passed to fal.ai negative_prompt)
+  refImage: string; // reference image path for img2img refinement
+  strength: number; // img2img strength 0.0-1.0 (lower = more faithful to reference)
 }
 
 interface Campaign {
@@ -159,6 +174,137 @@ const MODEL_MAP: Record<string, string> = {
   "nano-banana-pro": "fal-ai/nano-banana-pro",
 };
 
+// ─── Model Capabilities Registry ────────────────────────────────────────────
+// Each model has different API parameter support. Flux accepts image_size (pixels),
+// while Grok and Nano Banana accept aspect_ratio (string enum).
+
+interface ModelCapabilities {
+  sizeMode: "image_size" | "aspect_ratio";
+  supportsSeed: boolean;
+  supportsResolution?: boolean;
+  defaultResolution?: string;
+  aspectRatios?: string[];
+}
+
+const MODEL_CAPS: Record<string, ModelCapabilities> = {
+  "flux-schnell":    { sizeMode: "image_size", supportsSeed: true },
+  "flux-pro":        { sizeMode: "image_size", supportsSeed: true },
+  "flux-dev":        { sizeMode: "image_size", supportsSeed: true },
+  "flux-2-pro":      { sizeMode: "image_size", supportsSeed: true },
+  "flux-2-dev":      { sizeMode: "image_size", supportsSeed: true },
+  "grok-imagine": {
+    sizeMode: "aspect_ratio", supportsSeed: false,
+    aspectRatios: ["2:1", "20:9", "19.5:9", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16", "9:19.5", "9:20", "1:2"],
+  },
+  "nano-banana": {
+    sizeMode: "aspect_ratio", supportsSeed: true,
+    supportsResolution: true, defaultResolution: "2K",
+    aspectRatios: ["21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16"],
+  },
+  "nano-banana-pro": {
+    sizeMode: "aspect_ratio", supportsSeed: true,
+    supportsResolution: true, defaultResolution: "2K",
+    aspectRatios: ["21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16"],
+  },
+};
+
+/** Map pixel dimensions to the closest valid aspect ratio string for a model. */
+function dimensionsToAspectRatio(w: number, h: number, validRatios: string[]): string {
+  const target = w / h;
+  let bestRatio = "1:1";
+  let bestDiff = Infinity;
+  for (const r of validRatios) {
+    const parts = r.split(":").map(Number);
+    if (parts.length !== 2 || !parts[0] || !parts[1]) continue;
+    const diff = Math.abs(target - parts[0] / parts[1]);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestRatio = r;
+    }
+  }
+  return bestRatio;
+}
+
+/** Resolve short model alias (strip fal: prefix). */
+function resolveModelAlias(modelSpec: string): string {
+  return modelSpec.startsWith("fal:") ? modelSpec.slice(4) : modelSpec;
+}
+
+/** Get capabilities for a model, defaulting to Flux behavior. */
+function getModelCaps(model: string): ModelCapabilities {
+  return MODEL_CAPS[model] || MODEL_CAPS["flux-schnell"];
+}
+
+// ─── Prompt Preprocessing ───────────────────────────────────────────────────
+// Adapt prompts to each model's strengths before sending to the API.
+
+const HEX_COLOR_MAP: [RegExp, string][] = [
+  [/#20124d/gi, "deep dark purple"],
+  [/#8068ff/gi, "vibrant electric violet"],
+  [/#8affbc/gi, "bright mint green"],
+  [/#0d0a1a/gi, "near-black"],
+  [/#0d0820/gi, "near-black"],
+  [/#2d1a66/gi, "dark violet"],
+  [/#f4f5ff/gi, "pale lavender white"],
+];
+
+const CAMERA_STRIP_PATTERNS: RegExp[] = [
+  /Shot on Hasselblad medium format,?\s*/gi,
+  /Shot on RED Komodo,?\s*/gi,
+  /Hasselblad\s*(medium format\s*)?quality,?\s*/gi,
+  /RED Komodo\s*quality,?\s*/gi,
+];
+
+function preprocessPrompt(
+  prompt: string,
+  model: string,
+  options?: { negativePrompt?: string },
+): string {
+  let processed = prompt;
+
+  // Inline negative prompt into prompt text (no fal.ai models support negative_prompt as a parameter)
+  if (options?.negativePrompt) {
+    const exclusions = options.negativePrompt.split(",").map((s) => s.trim()).filter(Boolean);
+    processed += ` The image must not contain: ${exclusions.join(", ")}.`;
+  }
+
+  if (model === "grok-imagine") {
+    processed = transformForGrok(processed);
+  } else if (model === "nano-banana" || model === "nano-banana-pro") {
+    processed = transformForNanoBanana(processed);
+  }
+
+  return processed;
+}
+
+/** Grok Imagine: photorealistic scene descriptions, descriptive colors, no hex codes. */
+function transformForGrok(prompt: string): string {
+  let p = prompt;
+  // Replace hex codes with descriptive color names
+  for (const [regex, name] of HEX_COLOR_MAP) {
+    p = p.replace(regex, name);
+  }
+  // Strip camera model references (Grok has its own rendering pipeline)
+  for (const pattern of CAMERA_STRIP_PATTERNS) {
+    p = p.replace(pattern, "");
+  }
+  // Add photorealism suffix if not already present
+  if (!/photorealistic|photo-realistic|ultra.*realistic/i.test(p)) {
+    p += " Photorealistic rendering, ultra high quality.";
+  }
+  return p;
+}
+
+/** Nano Banana: instruction-style prompts, Gemini reasoning layer handles hex codes. */
+function transformForNanoBanana(prompt: string): string {
+  let p = prompt;
+  // Long prompts benefit from instruction framing for Gemini's reasoning layer
+  if (p.length > 200) {
+    p = `Generate an image: ${p}`;
+  }
+  return p;
+}
+
 // Brand color palette
 const BRAND = {
   deepPurple: "#20124d",
@@ -168,49 +314,167 @@ const BRAND = {
   violetRgb: "128,104,255",
 };
 
+// ─── Parallel Execution Utility ──────────────────────────────────────────────
+
+/** Run async tasks with a concurrency limit. Returns settled results in order. */
+async function parallelLimit<T>(
+  tasks: (() => Promise<T>)[],
+  limit: number
+): Promise<PromiseSettledResult<T>[]> {
+  const results: PromiseSettledResult<T>[] = new Array(tasks.length);
+  let next = 0;
+
+  async function worker(): Promise<void> {
+    while (next < tasks.length) {
+      const idx = next++;
+      try {
+        results[idx] = { status: "fulfilled", value: await tasks[idx]() };
+      } catch (reason) {
+        results[idx] = { status: "rejected", reason };
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, () => worker()));
+  return results;
+}
+
+// ─── Image Cache ─────────────────────────────────────────────────────────────
+
+interface CacheEntry {
+  prompt: string;
+  model: string;
+  seed: number;
+  width: number;
+  height: number;
+  path: string;
+  timestamp: number;
+}
+
+function cacheKey(prompt: string, model: string, seed: number, w: number, h: number): string {
+  return createHash("sha256").update(`${prompt}|${model}|${seed}|${w}|${h}`).digest("hex");
+}
+
+function loadCache(outputDir: string): Record<string, CacheEntry> {
+  const cachePath = join(outputDir, "cache.json");
+  if (!existsSync(cachePath)) return {};
+  try {
+    return JSON.parse(readFileSync(cachePath, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveCache(outputDir: string, cache: Record<string, CacheEntry>): void {
+  const cachePath = join(outputDir, "cache.json");
+  mkdirSync(outputDir, { recursive: true });
+  writeFileSync(cachePath, JSON.stringify(cache, null, 2));
+}
+
 // ─── Provider (fal.ai — all models) ─────────────────────────────────────────
 
+interface Provider {
+  name: string;
+  generate(
+    prompt: string,
+    width: number,
+    height: number,
+    seed: number,
+    model: string,
+    options?: { negativePrompt?: string; referenceImage?: string; strength?: number }
+  ): Promise<GenerateResult>;
+}
+
+class FalProvider implements Provider {
+  name = "fal.ai";
+
+  async generate(
+    prompt: string,
+    width: number,
+    height: number,
+    seed: number,
+    modelSpec: string,
+    options?: { negativePrompt?: string; referenceImage?: string; strength?: number }
+  ): Promise<GenerateResult> {
+    if (!process.env.FAL_KEY)
+      throw new Error("FAL_KEY not set. Get your key at https://fal.ai/dashboard/keys");
+
+    const model = resolveModelAlias(modelSpec);
+    const caps = getModelCaps(model);
+    const resolvedModel = MODEL_MAP[model] || model;
+    const { fal } = await import("@fal-ai/client");
+
+    // Preprocess prompt for model-specific optimizations
+    const processedPrompt = preprocessPrompt(prompt, model, options);
+
+    // Build model-aware input payload
+    const input: Record<string, unknown> = {
+      prompt: processedPrompt,
+      num_images: 1,
+    };
+
+    // Size: pixel dimensions (Flux) or aspect ratio string (Grok, Nano Banana)
+    if (caps.sizeMode === "image_size") {
+      input.image_size = { width, height };
+    } else {
+      input.aspect_ratio = dimensionsToAspectRatio(width, height, caps.aspectRatios || ["1:1"]);
+      if (caps.supportsResolution) {
+        input.resolution = caps.defaultResolution || "2K";
+      }
+    }
+
+    // Seed (only if model supports it)
+    if (caps.supportsSeed) {
+      input.seed = seed;
+    }
+
+    // img2img reference
+    if (options?.referenceImage) {
+      input.image_url = options.referenceImage;
+      input.strength = options.strength ?? 0.5;
+    }
+
+    const result = (await fal.subscribe(resolvedModel, { input })) as Record<string, unknown>;
+    const data = (result.data as Record<string, unknown>) || result;
+    const images = data.images as Array<{ url: string }>;
+    if (!images?.length)
+      throw new Error(`No images returned from fal.ai (model: ${resolvedModel})`);
+    return { url: images[0].url, seed: (data.seed as number) || seed };
+  }
+}
+
+const provider: Provider = new FalProvider();
+
+/** Generate an image with retries. Tries primary model, then fallback models. */
 async function generateImage(
   prompt: string,
   width: number,
   height: number,
   seed: number,
-  modelSpec: string
+  modelSpec: string,
+  maxRetries: number,
+  fallbackModels: string[] = [],
+  options?: { negativePrompt?: string; referenceImage?: string; strength?: number }
 ): Promise<GenerateResult> {
-  if (!process.env.FAL_KEY)
-    throw new Error("FAL_KEY not set. Get your key at https://fal.ai/dashboard/keys");
-
-  // Parse "fal:flux-pro" → "flux-pro", or accept bare model name
-  const model = modelSpec.startsWith("fal:") ? modelSpec.slice(4) : modelSpec;
-  const resolvedModel = MODEL_MAP[model] || model;
-
-  const { fal } = await import("@fal-ai/client");
-
-  const MAX_RETRIES = 3;
+  const models = [modelSpec, ...fallbackModels];
   const RETRY_DELAY_MS = 3000;
 
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const result = (await fal.subscribe(resolvedModel, {
-        input: {
-          prompt,
-          image_size: { width, height },
-          num_images: 1,
-          seed,
-        },
-      })) as Record<string, unknown>;
-      const data = (result.data as Record<string, unknown>) || result;
-      const images = data.images as Array<{ url: string }>;
-      if (!images?.length)
-        throw new Error(`No images returned from fal.ai (model: ${resolvedModel})`);
-      return { url: images[0].url, seed: (data.seed as number) || seed };
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (attempt < MAX_RETRIES) {
-        console.error(`  Attempt ${attempt}/${MAX_RETRIES} failed: ${msg} — retrying in ${RETRY_DELAY_MS / 1000}s...`);
-        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
-      } else {
-        throw new Error(`Failed after ${MAX_RETRIES} attempts (${resolvedModel}): ${msg}`);
+  for (let mi = 0; mi < models.length; mi++) {
+    const currentModel = models[mi];
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await provider.generate(prompt, width, height, seed, currentModel, options);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (attempt < maxRetries) {
+          console.error(`  Attempt ${attempt}/${maxRetries} failed (${currentModel}): ${msg} — retrying in ${RETRY_DELAY_MS / 1000}s...`);
+          await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+        } else if (mi < models.length - 1) {
+          console.error(`  Model ${currentModel} failed after ${maxRetries} attempts. Falling back to ${models[mi + 1]}...`);
+          break; // move to next model
+        } else {
+          throw new Error(`Failed after ${maxRetries} attempts on all models (last: ${currentModel}): ${msg}`);
+        }
       }
     }
   }
@@ -299,6 +563,10 @@ function parseCampaignMd(filePath: string): Campaign {
       headlineColor: configRaw.headlineColor || "#FFFFFF",
       exploreModel: configRaw.exploreModel || "fal:flux-schnell",
       finalModel: configRaw.finalModel || "fal:flux-pro",
+      fallbackModels: configRaw.fallbackModels
+        ? configRaw.fallbackModels.split(",").map((m: string) => m.trim()).filter(Boolean)
+        : [],
+      maxRetries: configRaw.maxRetries ? parseInt(configRaw.maxRetries, 10) : 3,
       output: configRaw.output || `output/creatives/${campaignName}`,
     },
     variants: variants.map((v, i) => ({
@@ -314,6 +582,9 @@ function parseCampaignMd(filePath: string): Campaign {
       rotate: v.rotate === "true",
       bgFile: v.bgFile || v.bg || "",
       mask: ["angular", "circle", "rounded", "fade"].includes(v.mask) ? v.mask : "",
+      negativePrompt: v.negativePrompt || "",
+      refImage: v.refImage || "",
+      strength: v.strength ? parseFloat(v.strength) : 0.5,
     })),
   };
 }
@@ -326,6 +597,36 @@ async function downloadImage(url: string, dest: string): Promise<void> {
     throw new Error(`Download failed: HTTP ${response.status}`);
   const buffer = Buffer.from(await response.arrayBuffer());
   writeFileSync(dest, buffer);
+}
+
+/**
+ * Normalize downloaded image to exact target dimensions.
+ * Aspect-ratio-based models (Grok, Nano Banana) return images at their native
+ * resolutions, which may not match the exact ad size the compositor expects.
+ * Uses sharp to resize with cover fit (no letterboxing, center-crop if needed).
+ */
+async function normalizeImage(imagePath: string, targetWidth: number, targetHeight: number): Promise<void> {
+  let sharp: typeof import("sharp");
+  try {
+    sharp = (await import("sharp")).default;
+  } catch {
+    // sharp not installed — skip normalization (Playwright background-size:cover handles minor mismatches)
+    return;
+  }
+  try {
+    const metadata = await sharp(imagePath).metadata();
+    if (!metadata.width || !metadata.height) return;
+    if (metadata.width === targetWidth && metadata.height === targetHeight) return;
+
+    const buffer = await sharp(imagePath)
+      .resize(targetWidth, targetHeight, { fit: "cover", position: "center" })
+      .png()
+      .toBuffer();
+    writeFileSync(imagePath, buffer);
+    console.error(`  Normalized ${metadata.width}x${metadata.height} → ${targetWidth}x${targetHeight}`);
+  } catch (err) {
+    console.error(`  Normalize skipped for ${imagePath}: ${err instanceof Error ? err.message : err}`);
+  }
 }
 
 // ─── Shared HTML/CSS Utilities ──────────────────────────────────────────────
@@ -1216,20 +1517,42 @@ async function renderAd(browser: Browser, config: AdConfig): Promise<void> {
 
 async function cmdGenerate(
   campaign: Campaign,
-  explore: boolean
+  explore: boolean,
+  opts: { variantFilter?: number; concurrency?: number; maxRetries?: number; useCache?: boolean }
 ): Promise<Record<string, string>> {
   const bgDir = join(campaign.config.output, "backgrounds");
   mkdirSync(bgDir, { recursive: true });
+
+  const concurrency = opts.concurrency ?? 4;
+  const maxRetries = opts.maxRetries ?? (explore ? 10 : campaign.config.maxRetries);
+  const useCache = opts.useCache !== false;
+  const cache = useCache ? loadCache(campaign.config.output) : {};
 
   const backgrounds: Array<{
     variant: number;
     format: string;
     path: string;
     seed: number;
+    model?: string;
+    cached?: boolean;
   }> = [];
   const bgPaths: Record<string, string> = {};
 
+  // Build task list for parallel execution
+  interface GenTask {
+    vi: number;
+    size: typeof AD_SIZES[number];
+    prompt: string;
+    model: string;
+    bgPath: string;
+    key: string;
+    negativePrompt: string;
+  }
+  const tasks: GenTask[] = [];
+
   for (let vi = 0; vi < campaign.variants.length; vi++) {
+    if (opts.variantFilter !== undefined && vi !== opts.variantFilter) continue;
+
     const variant = campaign.variants[vi];
 
     // User-provided background image: copy to backgrounds dir for each size
@@ -1257,9 +1580,9 @@ async function cmdGenerate(
       continue;
     }
 
-    // Per-variant model: explore always uses explore-model; production uses variant override or campaign default
+    // Per-variant model: explore honors variant override, then falls back to explore-model
     const variantModel = explore
-      ? campaign.config.exploreModel
+      ? (variant.model || campaign.config.exploreModel)
       : (variant.model || campaign.config.finalModel);
 
     for (const size of AD_SIZES) {
@@ -1270,41 +1593,68 @@ async function cmdGenerate(
       // Build final prompt based on layout
       let finalPrompt = variant.prompt;
       if (variant.layout === "classic") {
-        // Classic needs clear space for text overlay — append composition directive
         finalPrompt = `${variant.prompt} ${size.compositionDirective}`;
       } else if (variant.layout === "floating-element") {
-        // Screen blend requires pure black background — technical requirement
         finalPrompt = `${variant.prompt} On pure solid black background.`;
       }
-      // All other layouts: agent's prompt used as-is
 
-      console.error(
-        `Generating v${vi + 1} ${size.name} (${size.width}x${size.height}) via ${variantModel}...`
-      );
+      // Check cache before adding to task list
+      const ck = cacheKey(finalPrompt, variantModel, campaign.config.seed, size.width, size.height);
+      if (useCache && cache[ck] && existsSync(cache[ck].path)) {
+        console.error(`Cache hit v${vi + 1} ${size.name} → ${cache[ck].path}`);
+        backgrounds.push({ variant: vi + 1, format: size.name, path: cache[ck].path, seed: campaign.config.seed, cached: true });
+        bgPaths[key] = cache[ck].path;
+        continue;
+      }
 
-      try {
+      tasks.push({ vi, size, prompt: finalPrompt, model: variantModel, bgPath, key, negativePrompt: variant.negativePrompt });
+    }
+  }
+
+  // Execute generation tasks in parallel
+  if (tasks.length > 0) {
+    console.error(`Generating ${tasks.length} images (concurrency: ${concurrency}, retries: ${maxRetries})...`);
+
+    const results = await parallelLimit(
+      tasks.map((task) => async () => {
+        console.error(`  Generating v${task.vi + 1} ${task.size.name} (${task.size.width}x${task.size.height}) via ${task.model}...`);
         const result = await generateImage(
-          finalPrompt,
-          size.width,
-          size.height,
+          task.prompt,
+          task.size.width,
+          task.size.height,
           campaign.config.seed,
-          variantModel
+          task.model,
+          maxRetries,
+          campaign.config.fallbackModels,
+          task.negativePrompt ? { negativePrompt: task.negativePrompt } : undefined
         );
-        await downloadImage(result.url, bgPath);
-        console.error(`  → ${bgPath}`);
+        await downloadImage(result.url, task.bgPath);
+        // Normalize to exact ad dimensions (needed for aspect-ratio models like Grok, Nano Banana)
+        await normalizeImage(task.bgPath, task.size.width, task.size.height);
+        console.error(`  → ${task.bgPath}`);
+        return { task, result };
+      }),
+      concurrency
+    );
 
-        backgrounds.push({
-          variant: vi + 1,
-          format: size.name,
-          path: bgPath,
-          seed: result.seed,
-        });
-        bgPaths[key] = bgPath;
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error(`  FAILED v${vi + 1} ${size.name}: ${msg} — skipping.`);
+    for (const settled of results) {
+      if (settled.status === "fulfilled") {
+        const { task, result } = settled.value;
+        backgrounds.push({ variant: task.vi + 1, format: task.size.name, path: task.bgPath, seed: result.seed, model: task.model });
+        bgPaths[task.key] = task.bgPath;
+        // Update cache
+        if (useCache) {
+          const ck = cacheKey(task.prompt, task.model, campaign.config.seed, task.size.width, task.size.height);
+          cache[ck] = { prompt: task.prompt, model: task.model, seed: result.seed, width: task.size.width, height: task.size.height, path: task.bgPath, timestamp: Date.now() };
+        }
+      } else {
+        const task = tasks[results.indexOf(settled)];
+        const msg = settled.reason instanceof Error ? settled.reason.message : String(settled.reason);
+        console.error(`  FAILED v${task.vi + 1} ${task.size.name}: ${msg} — skipping.`);
       }
     }
+
+    if (useCache) saveCache(campaign.config.output, cache);
   }
 
   console.log(
@@ -1319,28 +1669,38 @@ async function cmdGenerate(
   return bgPaths;
 }
 
-async function cmdRender(campaign: Campaign): Promise<void> {
+async function cmdRender(
+  campaign: Campaign,
+  opts: { variantFilter?: number; concurrency?: number }
+): Promise<void> {
   const bgDir = join(campaign.config.output, "backgrounds");
+  const concurrency = opts.concurrency ?? 6;
   const browser = await chromium.launch();
 
   const ads: Array<{ variant: number; format: string; path: string }> = [];
 
-  try {
-    for (let vi = 0; vi < campaign.variants.length; vi++) {
-      const variant = campaign.variants[vi];
-      for (const size of AD_SIZES) {
-        const bgPath = join(bgDir, `bg-v${vi + 1}-${size.name}.png`);
-        const outputFile = `v${vi + 1}-${size.name}-${size.width}x${size.height}.png`;
-        const outputPath = join(campaign.config.output, outputFile);
+  // Build render tasks
+  const renderTasks: Array<{ adConfig: AdConfig; vi: number; sizeName: string }> = [];
 
-        // For bold-type without a prompt, bg may not exist — that's fine
-        const bgExists = existsSync(bgPath);
-        if (!bgExists && variant.layout !== "bold-type") {
-          console.warn(`Background not found: ${bgPath} — skipping`);
-          continue;
-        }
+  for (let vi = 0; vi < campaign.variants.length; vi++) {
+    if (opts.variantFilter !== undefined && vi !== opts.variantFilter) continue;
 
-        const adConfig: AdConfig = {
+    const variant = campaign.variants[vi];
+    for (const size of AD_SIZES) {
+      const bgPath = join(bgDir, `bg-v${vi + 1}-${size.name}.png`);
+      const outputFile = `v${vi + 1}-${size.name}-${size.width}x${size.height}.png`;
+      const outputPath = join(campaign.config.output, outputFile);
+
+      const bgExists = existsSync(bgPath);
+      if (!bgExists && variant.layout !== "bold-type") {
+        console.warn(`Background not found: ${bgPath} — skipping`);
+        continue;
+      }
+
+      renderTasks.push({
+        vi,
+        sizeName: size.name,
+        adConfig: {
           bg: bgExists ? bgPath : "",
           headline: variant.headline,
           body: variant.body,
@@ -1361,10 +1721,30 @@ async function cmdRender(campaign: Campaign): Promise<void> {
           badge: variant.badge || "",
           rotate: variant.rotate || false,
           mask: variant.mask || "",
-        };
+        },
+      });
+    }
+  }
 
-        await renderAd(browser, adConfig);
-        ads.push({ variant: vi + 1, format: size.name, path: outputPath });
+  // Execute renders in parallel
+  try {
+    console.error(`Rendering ${renderTasks.length} ads (concurrency: ${concurrency})...`);
+    const results = await parallelLimit(
+      renderTasks.map((task) => async () => {
+        await renderAd(browser, task.adConfig);
+        return task;
+      }),
+      concurrency
+    );
+
+    for (const settled of results) {
+      if (settled.status === "fulfilled") {
+        const task = settled.value;
+        ads.push({ variant: task.vi + 1, format: task.sizeName, path: task.adConfig.output });
+      } else {
+        const task = renderTasks[results.indexOf(settled)];
+        const msg = settled.reason instanceof Error ? settled.reason.message : String(settled.reason);
+        console.error(`  Render FAILED v${task.vi + 1} ${task.sizeName}: ${msg}`);
       }
     }
   } finally {
@@ -1387,9 +1767,128 @@ async function cmdRender(campaign: Campaign): Promise<void> {
   );
 }
 
-async function cmdFull(campaign: Campaign, explore: boolean): Promise<void> {
-  await cmdGenerate(campaign, explore);
-  await cmdRender(campaign);
+async function cmdFull(
+  campaign: Campaign,
+  explore: boolean,
+  opts: { variantFilter?: number; concurrency?: number; maxRetries?: number; useCache?: boolean }
+): Promise<void> {
+  await cmdGenerate(campaign, explore, opts);
+  await cmdRender(campaign, { variantFilter: opts.variantFilter, concurrency: opts.concurrency });
+}
+
+/** Refine existing backgrounds using img2img. Requires ref-image or uses existing backgrounds. */
+async function cmdRefine(
+  campaign: Campaign,
+  opts: { variantFilter?: number; concurrency?: number; maxRetries?: number; useCache?: boolean }
+): Promise<Record<string, string>> {
+  const bgDir = join(campaign.config.output, "backgrounds");
+  mkdirSync(bgDir, { recursive: true });
+
+  const concurrency = opts.concurrency ?? 4;
+  const maxRetries = opts.maxRetries ?? campaign.config.maxRetries;
+
+  const backgrounds: Array<{ variant: number; format: string; path: string; seed: number }> = [];
+  const bgPaths: Record<string, string> = {};
+
+  interface RefineTask {
+    vi: number;
+    size: typeof AD_SIZES[number];
+    prompt: string;
+    model: string;
+    bgPath: string;
+    key: string;
+    refImageUrl: string;
+    strength: number;
+    negativePrompt: string;
+  }
+  const tasks: RefineTask[] = [];
+
+  for (let vi = 0; vi < campaign.variants.length; vi++) {
+    if (opts.variantFilter !== undefined && vi !== opts.variantFilter) continue;
+
+    const variant = campaign.variants[vi];
+    if (!variant.prompt) continue;
+
+    const variantModel = variant.model || campaign.config.finalModel;
+
+    for (const size of AD_SIZES) {
+      const bgFile = `bg-v${vi + 1}-${size.name}.png`;
+      const bgPath = join(bgDir, bgFile);
+      const key = `v${vi + 1}-${size.name}`;
+
+      // Determine reference image: explicit ref-image field, or existing background
+      let refImageUrl = "";
+      if (variant.refImage) {
+        const refPath = resolve(variant.refImage);
+        if (existsSync(refPath)) {
+          refImageUrl = `data:image/png;base64,${readFileSync(refPath).toString("base64")}`;
+        }
+      } else if (existsSync(bgPath)) {
+        refImageUrl = `data:image/png;base64,${readFileSync(bgPath).toString("base64")}`;
+      }
+
+      if (!refImageUrl) {
+        console.error(`Variant ${vi + 1} ${size.name}: no reference image for refinement — skipping.`);
+        continue;
+      }
+
+      let finalPrompt = variant.prompt;
+      if (variant.layout === "classic") {
+        finalPrompt = `${variant.prompt} ${size.compositionDirective}`;
+      } else if (variant.layout === "floating-element") {
+        finalPrompt = `${variant.prompt} On pure solid black background.`;
+      }
+
+      tasks.push({
+        vi, size, prompt: finalPrompt, model: variantModel, bgPath, key,
+        refImageUrl, strength: variant.strength, negativePrompt: variant.negativePrompt,
+      });
+    }
+  }
+
+  if (tasks.length > 0) {
+    console.error(`Refining ${tasks.length} images (strength: ${tasks[0]?.strength ?? 0.5}, concurrency: ${concurrency})...`);
+
+    const results = await parallelLimit(
+      tasks.map((task) => async () => {
+        console.error(`  Refining v${task.vi + 1} ${task.size.name} via ${task.model} (strength: ${task.strength})...`);
+        const result = await generateImage(
+          task.prompt,
+          task.size.width,
+          task.size.height,
+          campaign.config.seed,
+          task.model,
+          maxRetries,
+          campaign.config.fallbackModels,
+          {
+            negativePrompt: task.negativePrompt || undefined,
+            referenceImage: task.refImageUrl,
+            strength: task.strength,
+          }
+        );
+        await downloadImage(result.url, task.bgPath);
+        await normalizeImage(task.bgPath, task.size.width, task.size.height);
+        console.error(`  → ${task.bgPath}`);
+        return { task, result };
+      }),
+      concurrency
+    );
+
+    for (const settled of results) {
+      if (settled.status === "fulfilled") {
+        const { task, result } = settled.value;
+        backgrounds.push({ variant: task.vi + 1, format: task.size.name, path: task.bgPath, seed: result.seed, model: task.model });
+        bgPaths[task.key] = task.bgPath;
+      } else {
+        const task = tasks[results.indexOf(settled)];
+        const msg = settled.reason instanceof Error ? settled.reason.message : String(settled.reason);
+        console.error(`  FAILED refine v${task.vi + 1} ${task.size.name}: ${msg} — skipping.`);
+      }
+    }
+  }
+
+  console.log(JSON.stringify({ campaign: campaign.name, mode: "refine", backgrounds }));
+  return bgPaths;
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────────
@@ -1401,6 +1900,7 @@ Commands:
   generate   Generate background images via AI provider
   render     Composite text + logo onto backgrounds → PNG
   full       Run generate + render in sequence
+  refine     Refine existing backgrounds via img2img
 
 Layouts (per variant in campaign.md):
   classic          Full-bleed AI bg + overlay + text (default)
@@ -1411,8 +1911,17 @@ Layouts (per variant in campaign.md):
   floating-element Screen-blended element over gradient
 
 Flags:
-  --explore  Use explore-model (cheap/fast) instead of final-model
-  --dry-run  Parse campaign.md and print JSON — no API calls or rendering`);
+  --explore          Use explore-model (cheap/fast) instead of final-model
+  --dry-run          Parse campaign.md and print JSON — no API calls
+  --variant=N        Process only variant N (1-indexed)
+  --concurrency=N    Max parallel API calls (default: 4 generate, 6 render)
+  --max-retries=N    Max retries per image (default: 3, or 10 with --explore)
+  --no-cache         Skip image cache, force regeneration`);
+}
+
+function parseFlag(args: string[], name: string): number | undefined {
+  const flag = args.find((a) => a.startsWith(`--${name}=`));
+  return flag ? parseInt(flag.split("=")[1], 10) : undefined;
 }
 
 async function main() {
@@ -1421,8 +1930,14 @@ async function main() {
   const mdPath = args.find((a) => a.endsWith(".md"));
   const explore = args.includes("--explore");
   const dryRun = args.includes("--dry-run");
+  const noCache = args.includes("--no-cache");
 
-  if (!subcommand || !mdPath || !["generate", "render", "full"].includes(subcommand)) {
+  const variantFlag = parseFlag(args, "variant");
+  const variantFilter = variantFlag !== undefined ? variantFlag - 1 : undefined;
+  const concurrency = parseFlag(args, "concurrency");
+  const maxRetries = parseFlag(args, "max-retries");
+
+  if (!subcommand || !mdPath || !["generate", "render", "full", "refine"].includes(subcommand)) {
     printUsage();
     process.exit(1);
   }
@@ -1434,15 +1949,20 @@ async function main() {
     return;
   }
 
+  const opts = { variantFilter, concurrency, maxRetries, useCache: !noCache };
+
   switch (subcommand) {
     case "generate":
-      await cmdGenerate(campaign, explore);
+      await cmdGenerate(campaign, explore, opts);
       break;
     case "render":
-      await cmdRender(campaign);
+      await cmdRender(campaign, { variantFilter, concurrency });
       break;
     case "full":
-      await cmdFull(campaign, explore);
+      await cmdFull(campaign, explore, opts);
+      break;
+    case "refine":
+      await cmdRefine(campaign, opts);
       break;
   }
 }

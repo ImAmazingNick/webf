@@ -26,18 +26,15 @@ Step 6: ITERATE  → Edit campaign.md, re-run generate/render, max 3 retries
 
 ## Step 1: Copy
 
-Read the campaign brief (from messaging files, outbound strategy, or manual input). Write:
+Read the campaign brief (from messaging files, outbound strategy, or manual input). Write headline, body (optional), and CTA text.
 
-- **Headline**: 3–7 words. Punchy, outcome-first. Raleway 700 style.
-- **Body** (optional): 1 short sentence. 8–15 words max. Inter style.
-- **CTA text**: 2–4 words. Action verb + outcome. ("Book a demo", "See it work", "Get the report")
+**Copy rules:** See `knowledge/creatives/ad-copy-guide.md` for headline formulas, length limits, and CTA patterns.
 
 **Rules:**
 - All copy from messaging files when available — never invent if source exists
-- Check banned words: revolutionary, game-changing, best-in-class, ultimate, AI-powered, military-grade, next-gen
+- **Banned words:** See `knowledge/branding/improvado-agent.md` Tone of Voice section.
 - No exclamation marks. No questions as headlines.
 - Stats over adjectives: "$2.4M saved" beats "incredible savings"
-- See `knowledge/creatives/ad-copy-guide.md` for headline formulas and platform limits
 
 ---
 
@@ -53,29 +50,33 @@ Write a `.md` file with the campaign config and all copy variants. This is the s
 - overlay: dark
 - logo: knowledge/assets/logos/improvado-light.svg
 - explore-model: fal:flux-schnell
-- final-model: fal:flux-pro
+- final-model: fal:flux-2-pro
+- fallback-models: fal:flux-pro, fal:flux-schnell
+- max-retries: 3
 
 ## Variant 1
+- layout: stat-hero
+- stat: $2.4M
 - headline: $2.4M saved *effortlessly*
 - cta: Book a demo
 - body: One agent replaces your entire reporting stack
-- layout: stat-hero
-- stat: $2.4M
 - text-effect: gradient
 - badge: Trusted by 40+ enterprises
-- prompt: Abstract data visualization with flowing purple and violet
-  light streams on deep dark background. Geometric nodes connected
-  by thin luminous lines. Premium, minimal. Deep purple #20124d
-  tones with violet #8068ff accents. No text, no words, no letters, no logos.
+- negative-prompt: text, words, letters, writing, characters, watermarks, logos
+- prompt: Macro photography of cracked obsidian stone with veins
+  of luminous violet crystal. Deep purple #20124d base tones with
+  violet #8068ff accents. Hasselblad medium format, extreme detail.
 
 ## Variant 2
+- layout: classic
 - headline: Your ad platforms optimize *for themselves*
 - cta: See how it works
 - text-effect: outline
 - rotate: true
-- prompt: Multiple thin data streams converging into one bright
-  unified flow. Deep purple #20124d background, streams in violet
-  #8068ff tones. No text, no words, no letters, no logos.
+- negative-prompt: text, words, letters, writing, characters, watermarks, logos
+- prompt: Aerial view of vast dark landscape where bioluminescent
+  streams converge into a single bright violet river. Cinematic drone,
+  deep purple #20124d terrain, mint #8affbc confluence point.
 ```
 
 ### Config Fields
@@ -89,15 +90,17 @@ Write a `.md` file with the campaign config and all copy variants. This is the s
 | `headline-color` | `#FFFFFF` | Headline text color |
 | `explore-model` | `fal:flux-schnell` | Cheap model for iteration |
 | `final-model` | `fal:flux-pro` | Production model |
+| `fallback-models` | (none) | Comma-separated fallback chain. When primary fails, tries next model. E.g., `fal:flux-pro, fal:flux-schnell` |
+| `max-retries` | `3` | Max retries per image per model. Default 3 (production) or 10 (`--explore`). |
 | `output` | `output/creatives/{name}` | Output directory |
 
 ### Variant Fields
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `headline` | Yes | 3–7 words. Wrap accent words in `*asterisks*` for Playfair Display Italic styling. |
-| `cta` | Yes | 2–4 words |
-| `body` | No | Optional body text, 8–15 words |
+| `headline` | Yes | Wrap accent words in `*asterisks*` for Playfair Display Italic styling. See `ad-copy-guide.md` for length limits. |
+| `cta` | Yes | Action verb + outcome. See `ad-copy-guide.md` for length limits. |
+| `body` | No | Optional body text. See `ad-copy-guide.md` for length limits. |
 | `prompt` | Yes* | AI image prompt (*optional for bold-type — generation skipped if empty) |
 | `layout` | No | Composition template. Default: `classic`. Options: `classic`, `stat-hero`, `split`, `product-frame`, `bold-type`, `floating-element` |
 | `stat` | No | Big number for stat-hero layout (e.g., "100%", "$2.4M") |
@@ -106,6 +109,10 @@ Write a `.md` file with the campaign config and all copy variants. This is the s
 | `rotate` | No | Set to `true` for subtle -3° rotation on headline/stat. Adds urgency and energy. |
 | `bg-file` | No | Path to a user-provided background image (screenshot, asset, photo). Skips AI generation — image is copied to backgrounds dir for all 4 sizes. |
 | `mask` | No | Clip/mask effect on background image: `angular` (diagonal cut), `circle` (circular reveal), `rounded` (24px border-radius), `fade` (gradient fade to brand color). |
+| `negative-prompt` | No | What to avoid in generation. Passed to fal.ai `negative_prompt`. E.g., `text, words, letters, writing, characters, watermarks, logos`. |
+| `ref-image` | No | Path to reference image for img2img refinement (used by `refine` subcommand). If omitted, refine uses the existing background. |
+| `strength` | `0.5` | Img2img strength 0.0–1.0. Lower = more faithful to reference. Typical: 0.3–0.5. |
+| `model` | No | Per-variant model override. E.g., `fal:grok-imagine`. Overrides campaign-level model for this variant. |
 
 ### Layout Selection
 
@@ -150,11 +157,13 @@ Prints parsed JSON without calling any API. Use this to confirm the MD parsed co
 npx tsx scripts/ad.ts generate campaign.md
 ```
 
-For each variant, generates backgrounds at all 4 ad sizes automatically:
+Generates backgrounds in parallel (concurrency 4) for all variants × 4 ad sizes:
 - Square: 1080×1080
 - Portrait: 1080×1350
 - Landscape: 1200×628
 - Story: 1080×1920
+
+Images are cached by `SHA-256(prompt + model + seed + width + height)`. Re-running with the same inputs skips API calls. Use `--no-cache` to force regeneration.
 
 Backgrounds saved to `{output}/backgrounds/bg-v{N}-{format}.png`.
 
@@ -166,7 +175,7 @@ The script automatically appends a composition directive to each prompt per form
 - **Landscape**: "Visual on right side, left half is dark space for text"
 - **Story**: "Visual in upper quarter, dark space through center and below for text"
 
-**Do NOT include composition/position directives in your prompt.** The script handles this. Focus your prompt on subject, mood, color, and quality. End with the no-text exclusion clause.
+**Do NOT include composition/position directives in your prompt.** The script handles this. Focus your prompt on subject, mood, color, and quality. Use `- negative-prompt:` for exclusions (text, words, letters, etc.) instead of appending to the prompt.
 
 ### Exploration Mode
 
@@ -184,37 +193,36 @@ Write prompts describing **concrete, photographable subjects** — not abstract 
 
 **Geological texture** (stat-hero, bold-type):
 ```
-Macro photography of cracked obsidian stone with veins of luminous violet
-crystal running through deep fractures. One vein glows bright mint #8affbc.
-Deep purple #20124d base tones. Shot on Hasselblad medium format, extreme
-detail, shallow depth of field, studio rim lighting. No text, no words,
-no letters, no numbers, no logos, no watermarks.
+- prompt: Macro photography of cracked obsidian stone with veins of luminous
+  violet crystal running through deep fractures. One vein glows bright mint
+  #8affbc. Deep purple #20124d base tones. Shot on Hasselblad medium format,
+  extreme detail, shallow depth of field, studio rim lighting.
+- negative-prompt: text, words, letters, numbers, logos, watermarks
 ```
 
 **Crystal optics** (floating-element, split):
 ```
-Dramatic 3D crystal prism splitting white light into violet #8068ff and
-mint #8affbc spectral streams. Translucent obsidian with sharp geometric
-edges, caustic light patterns. Studio product photography, Hasselblad
-quality. On pure solid black background. No text, no words, no letters,
-no numbers, no logos, no watermarks.
+- prompt: Dramatic 3D crystal prism splitting white light into violet #8068ff
+  and mint #8affbc spectral streams. Translucent obsidian with sharp geometric
+  edges, caustic light patterns. Studio product photography, Hasselblad quality.
+- negative-prompt: text, words, letters, numbers, logos, watermarks
 ```
 
 **Aerial convergence** (classic):
 ```
-Aerial view of vast dark landscape where hundreds of bioluminescent streams
-converge into a single bright violet river. Cinematic drone photography,
-atmospheric fog, volumetric god rays. Deep purple #20124d terrain, mint
-#8affbc confluence point. Shot on RED Komodo, filmic grain. No text,
-no words, no letters, no numbers, no logos, no watermarks.
+- prompt: Aerial view of vast dark landscape where hundreds of bioluminescent
+  streams converge into a single bright violet river. Cinematic drone photography,
+  atmospheric fog, volumetric god rays. Deep purple #20124d terrain, mint
+  #8affbc confluence point. Shot on RED Komodo, filmic grain.
+- negative-prompt: text, words, letters, numbers, logos, watermarks
 ```
 
 **Dark dashboard** (product-frame):
 ```
-Dark-themed analytics dashboard with glowing Sankey diagram showing journey
-flows through funnel stages. Violet #8068ff streams on near-black interface.
-Bloomberg Terminal meets Apple design. Crisp, enterprise-grade. No text,
-no words, no letters, no numbers, no logos, no watermarks, no readable labels.
+- prompt: Dark-themed analytics dashboard with glowing Sankey diagram showing
+  journey flows through funnel stages. Violet #8068ff streams on near-black
+  interface. Bloomberg Terminal meets Apple design. Crisp, enterprise-grade.
+- negative-prompt: text, words, letters, numbers, logos, watermarks, readable labels
 ```
 
 See `creative-design-guide.md` Section 9 for the full template library with all 6 visual styles and detailed prompt engineering guidance.
@@ -224,7 +232,7 @@ See `creative-design-guide.md` Section 9 for the full template library with all 
 For multiple ads in the same campaign:
 1. Set `seed` in config — same seed is used for all sizes and variants
 2. Use the same prompt style across variants
-3. For stronger consistency: use image-to-image mode with the first ad as reference
+3. For stronger consistency: generate variant 1 first, then set `- ref-image:` on other variants pointing to v1's background + use `refine --variant=N`
 
 ### User-Provided Backgrounds (`bg-file`)
 
@@ -279,7 +287,7 @@ Reads backgrounds from `{output}/backgrounds/`, composites text + logo, outputs 
 6. Adds a direction-aware gradient overlay for text readability
 7. Screenshots → PNG at 2x resolution (`deviceScaleFactor: 2` for retina quality)
 
-Single browser session renders all ads sequentially.
+Renders ads in parallel (concurrency 6, one browser instance, multiple contexts). Use `--variant=N` to re-render a single variant.
 
 ### Text Overlay Styling
 
@@ -306,6 +314,22 @@ Single browser session renders all ads sequentially.
 - Control via `overlay` field in config: `dark`, `light`, or `none`
 
 **Text shadow**: All text gets a subtle shadow (`0 2px 8px rgba(0,0,0,0.5)`) for extra readability on variable backgrounds. This is built into the render engine — no config needed.
+
+### Targeted Variant Processing
+
+```bash
+npx tsx scripts/ad.ts render campaign.md --variant=2
+```
+
+Processes only variant N. Essential for iteration — fix one variant without re-processing others.
+
+### Image Refinement (img2img)
+
+```bash
+npx tsx scripts/ad.ts refine campaign.md --variant=3
+```
+
+Uses existing backgrounds as reference images, applies prompt adjustments at the specified `strength`. When a background is 90% right, refine instead of regenerating from scratch. Requires either `- ref-image:` in campaign.md or an existing background file. Follow with `render --variant=N` to update text overlay.
 
 ### Full Pipeline (Generate + Render)
 
@@ -364,6 +388,38 @@ All models run through fal.ai — one API key (`FAL_KEY`), many models. Format: 
 
 **Cost per campaign**: ~$0.10 exploring (30 Schnell images) + ~$0.40 finals (8 Pro renders) = **~$0.50**
 
+### Model Selection
+
+Default to **Flux** for everything — it's reliable and proven. Switch models when a specific strength matters:
+
+- **Try Grok Imagine** when the prompt describes real physical materials (stone, glass, metal), real environments (offices, cityscapes), or isolated objects. Grok's photorealism makes textures and macro photography look premium rather than AI-smooth.
+- **Try Nano Banana Pro** when the prompt requires complex multi-element compositions (dashboards, UIs) or precise spatial placement of 3+ elements. Its reasoning layer handles structured scenes well.
+- **Stay with Flux** for abstract concepts, atmospheric landscapes, geometric patterns, and any prompt using composition directives. Flux gives the most predictable spatial control.
+
+Use per-variant model override (`- model: fal:grok-imagine`) to mix models in one campaign. The script auto-adapts prompts per model (hex→color names for Grok, instruction framing for Nano Banana, inlined negative prompts for all).
+
+### Model Personality Summary
+
+**Flux (flux-2-pro, flux-pro)** — The reliable generalist
+- Best at: atmospheric landscapes, abstract patterns, precise spatial composition directives
+- Weakness: can look "AI smooth" on close-up materials
+- Seed: supported (reproducible across sizes)
+- Cost: ~$0.05/image, ~5s
+
+**Grok Imagine** — The photorealist
+- Best at: real materials (stone, glass, metal), real environments (offices, cityscapes), macro photography, isolated objects on black
+- Weakness: doesn't parse hex color codes (use descriptive names), no seed support (less reproducible), no negative_prompt support
+- Seed: NOT supported. Campaign consistency relies on prompt consistency, not seed locking.
+- Prompt style: scene descriptions with descriptive color names ("deep dark purple" not "#20124d")
+- Cost: varies, ~10s
+
+**Nano Banana Pro** — The instruction follower
+- Best at: complex multi-element scenes, dashboard/UI mockups, precise spatial reasoning, scenes requiring 3+ positioned elements
+- Weakness: can over-render detail (fights minimalism), higher cost
+- Seed: supported
+- Prompt style: instruction-style ("Generate an image showing..."), Gemini reasoning handles hex codes and spatial constraints
+- Cost: ~$0.15/image, ~8s
+
 **Environment variable**: `FAL_KEY` — get your key at https://fal.ai/dashboard/keys
 
 ---
@@ -395,17 +451,34 @@ Prompts must describe **concrete, photographable subjects** — not abstract vag
 ## Quick Reference
 
 ```
+Commands:
+  npx tsx scripts/ad.ts generate campaign.md           # AI backgrounds
+  npx tsx scripts/ad.ts render campaign.md             # text + logo → PNG
+  npx tsx scripts/ad.ts full campaign.md               # both in sequence
+  npx tsx scripts/ad.ts refine campaign.md --variant=N # img2img refinement
+  npx tsx scripts/ad.ts generate campaign.md --explore # cheap model
+  npx tsx scripts/ad.ts generate campaign.md --dry-run # parse only
+
+Flags:
+  --variant=N        Process only variant N (1-indexed)
+  --concurrency=N    Max parallel API calls (default: 4 generate, 6 render)
+  --max-retries=N    Override retry budget (default: 3, or 10 with --explore)
+  --no-cache         Skip image cache, force regeneration
+
+Workflow:
 1. Read brief / messaging file
-2. Write headline (3–7 words) + CTA (2–4 words)
-3. Grep copy for banned words
-4. Write campaign.md (config + variants + prompts)
+2. Write headline + CTA (see ad-copy-guide.md for length limits)
+3. Grep copy for banned words (see improvado-agent.md for list)
+4. Write campaign.md (config + variants + negative-prompt + prompts)
 5. Verify: npx tsx scripts/ad.ts generate campaign.md --dry-run
 6. Generate + render: npx tsx scripts/ad.ts full campaign.md
    (or: generate → vision-check backgrounds → render separately)
 7. Review each output with vision against creative-rubric.md
-8. Iterate on failures (max 3 retries per ad):
-   - Text artifacts → edit campaign.md seed → re-run generate
-   - Unreadable text → edit overlay to dark → re-run render
-   - Copy issue → edit copy → re-run render only
+8. Iterate on failures (use --variant=N for targeted fixes):
+   - Copy issue → edit campaign.md → render --variant=N
+   - Text unreadable → set overlay: dark → render --variant=N
+   - AI text artifacts → new seed + negative-prompt → generate --variant=N
+   - Composition 90% right → add strength: 0.4 → refine --variant=N
+   - Composition wrong → simplify prompt → generate --variant=N
 9. Report grades (A/B/C/F) + seeds for reproducibility
 ```

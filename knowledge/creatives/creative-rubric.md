@@ -75,24 +75,37 @@
 
 ---
 
+## Model-Aware Observations
+
+When reviewing non-Flux models, watch for these tendencies (SHOULD PASS level — not blocking):
+
+- **Grok Imagine**: May drift toward warm tones (brown/amber) instead of cool purple. Fix: add "cold color temperature" to prompt. May miss brand colors since it ignores hex codes — verify purple/violet/mint are present. If not, strengthen descriptive color names in prompt.
+- **Nano Banana Pro**: May over-detail backgrounds (fights the minimalism dial). Fix: add "minimal composition, vast empty dark space" to prompt. May add unrequested elements from its reasoning layer — be restrictive: "ONLY [x], nothing else."
+- **Flux**: Most common issue is text/character artifacts. Fix: new seed + stronger negative-prompt. Second issue: plastic/AI-smooth surfaces. Fix: add "editorial photography, natural grain."
+- **Any model, persistent failure**: Switch model with `- model: fal:flux-2-pro` as fallback.
+
+---
+
 ## Iteration Guide
 
-When a check fails, apply the targeted fix:
+When a check fails, apply the lightest fix that solves the problem. Use `--variant=N` for all fixes — never reprocess the entire campaign.
 
 | Failed Check | Diagnosis | Fix Action |
 |---|---|---|
-| T1, T2, T3 | Text unreadable | Re-render with `--overlay "dark"`. If already dark, regenerate image with simpler composition. |
-| A1 | AI text artifacts | Regenerate image: new seed + append "absolutely no text characters, no writing" to prompt. |
-| A2 | Visual distortions | Regenerate image: simplify prompt, remove specific object descriptions. |
-| B1, B2 | Copy violation | Fix the copy text. Re-render. No need to regenerate image. |
-| B3 | Wrong font | This is a render script issue — should not happen. Report as bug. |
-| L1 | Wrong layout | Check variant `layout` field matches intended template. Re-render. |
-| L2 | Logo invisible | Re-render with opposite logo variant (light ↔ dark). |
-| L3 | Blend mode broken | Regenerate image: for floating-element ensure prompt produces subject on pure black; for stat-hero ensure prompt produces atmospheric texture not a scene. |
-| L4 | Split zones unclear | Adjust clip-path/mask or regenerate image with stronger visual contrast. |
-| V1 | Missing brand colors | Regenerate image: add explicit color hex codes to prompt. |
-| V2 | Generic/stock feel | Regenerate image: use different prompt pattern from creative-workflow.md. |
-| P1, P2, P3 | Safe zone violation | This is a composition issue — regenerate image with "leave clear space in [zone] for text" in prompt. |
+| B1, B2 | Copy violation | Edit campaign.md copy → `render --variant=N` (no regeneration) |
+| T1, T2, T3 | Text unreadable | Set `overlay: dark` → `render --variant=N`. If still unreadable, simplify prompt → `generate --variant=N` |
+| A1 | AI text artifacts | New seed + add `negative-prompt: text, words, letters, writing, characters` → `generate --variant=N` |
+| A2 | Visual distortions | Simplify prompt (remove specific objects) → `generate --variant=N` |
+| B3 | Wrong font | Render script bug — report it |
+| L1 | Wrong layout | Check variant `layout` field → `render --variant=N` |
+| L2 | Logo invisible | Swap logo path (light ↔ dark) → `render --variant=N` |
+| L3 | Blend mode broken | For floating-element: ensure "on pure black background" in prompt; for stat-hero: use atmospheric texture → `generate --variant=N` |
+| L4 | Split zones unclear | Adjust mask or regenerate with stronger visual contrast → `generate --variant=N` |
+| V1 | Missing brand colors | Add hex codes to prompt (Flux) or descriptive color names (Grok) → `generate --variant=N` |
+| V2 | Generic/stock feel | Different prompt pattern → `generate --variant=N`. Or use `refine --variant=N` with `strength: 0.4` if composition is close. |
+| P1, P2, P3 | Safe zone violation | Add "leave clear space in [zone]" to prompt → `generate --variant=N` |
+| Composition 90% right | Minor adjustment | Add `ref-image:` + `strength: 0.4` + adjust prompt → `refine --variant=N` |
+| Persistent artifact (3+ retries) | Model limitation | Switch model: `- model: fal:flux-2-pro` → `generate --variant=N`. If still failing, try a completely different visual concept. |
 
 ---
 

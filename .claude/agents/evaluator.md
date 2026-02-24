@@ -40,6 +40,29 @@ Tools available (read-only):
 
 **Pass threshold**: Same as other modes — zero blockers + zero criticals + fewer than 3 majors.
 
+### Creative Mode
+Tools available (read-only):
+- `Read` → read output PNGs with vision, read campaign.md for text analysis
+- `Grep` → scan campaign.md for banned words, verify word counts
+- `Bash` (readonly) → `ls`, `wc`, file existence checks
+
+**Applicable checks (from `knowledge/creatives/creative-rubric.md`):**
+- **Text Readability** (3 checks): T1 (headline readable), T2 (CTA legible), T3 (no text bleeding into busy bg)
+- **AI Artifacts** (2 checks): A1 (no text/letters in generated background), A2 (no visual distortions)
+- **Brand Compliance** (3 checks): B1 (no banned words), B2 (no exclamation marks), B3 (headline uses Raleway)
+- **Layout** (4 checks): L1 (layout matches format spec), L2 (logo recognizable), L3 (blend mode correct), L4 (split zones clean)
+- **Visual Quality** (3 checks): V1 (brand colors visible), V2 (premium feel), V3 (visual hierarchy clear)
+- **Platform Fit** (3 checks): P1 (Meta penalty zone), P2 (safe zone edges), P3 (story CTA above swipe zone)
+- **Composition** (3 checks): C1 (logo/text separation), C2 (body text readable), C3 (balance of elements)
+
+**Automated pre-checks (run before vision):**
+- Grep campaign.md for banned words → CRITICAL if found
+- Count headline words (3–7), CTA words (2–4), body words (8–15) → MAJOR if out of range
+- Verify each variant has `negative-prompt` field with text exclusion terms (text, words, letters) → CRITICAL if missing
+- Check all output PNG files exist for each variant × size → BLOCKER if missing
+
+**Pass threshold**: Same as other modes — zero blockers + zero criticals + fewer than 3 majors.
+
 ---
 
 ## Evaluation Sequence
@@ -67,6 +90,32 @@ No screenshots or DOM inspection. All checks run against the generated `.ts` fil
 2. ACCESSIBILITY — Check theme assignments for mint-on-light violations, verify heading hierarchy via block order
 3. STYLING — Verify theme alternation pattern, no hardcoded hex, S3 pair shares dark theme
 4. CONTENT — Word counts (S1 title 8–12, S1 subtitle 20–30, S8 title 8–14), banned words scan, CTA text, accent markup
+```
+
+### Creative mode
+
+Combines automated text checks with vision-based image inspection.
+
+```
+1. AUTOMATED PRE-CHECKS
+   - Read campaign.md from the output directory
+   - Grep for banned words in headline/body/CTA text → CRITICAL
+   - Count words: headline 3–7, CTA 2–4, body 8–15 → MAJOR if violated
+   - Verify each variant has `negative-prompt` field with text exclusion terms → CRITICAL if missing
+   - Check file existence: all expected PNGs present → BLOCKER if missing
+
+2. VISION REVIEW (per variant, per ad size)
+   - Read each final output PNG with vision (e.g., v1-square-1080x1080.png)
+   - Check T1-T3: Text readability (headline sharp, CTA stands out, no bleeding)
+   - Check A1-A2: AI artifacts (no text in background, no distortions)
+   - Check B3: Headline uses Raleway (geometric sans-serif, not Inter)
+   - Check L1-L4: Layout matches template spec per format
+   - Check V1-V3: Brand colors present, premium feel, visual hierarchy
+   - Check P1-P3: Platform safe zones respected
+   - Check C1-C3: Logo/text separation, composition balance
+
+3. GRADE each ad: A (all pass), B (MUST pass + 1-2 SHOULD miss),
+   C (MUST pass + 3+ SHOULD miss), F (any MUST fail)
 ```
 
 ---

@@ -313,7 +313,7 @@ TASTE.md bans "gradient blobs" but not all gradients. The distinction:
 | Deep Purple (#20124d) | White (#fff) | 13.5:1 | Excellent for light themes |
 | Deep Purple (#20124d) | Mint (#8affbc) | 8.2:1 | Possible but unusual |
 
-**Rule**: White text on deep purple is the default. Violet backgrounds need large text only. Mint is decorative only — never as readable text on light.
+**Mint safety:** Mint on light backgrounds fails WCAG. See `knowledge/branding/improvado-agent.md` Contrast Matrix for full rules. White text on deep purple is the default. Violet backgrounds need large text only.
 
 ### Color Psychology — Why Purple Works for B2B
 
@@ -753,32 +753,29 @@ premium editorial quality, clean rendering, sharp geometric detail,
 matte surfaces with edge lighting
 ```
 
-**Step 6 — Exclusion**:
+**Step 6 — Exclusion** (use `negative-prompt` field, not appended to prompt):
 ```
-no text, no words, no letters, no numbers, no logos, no watermarks,
-no UI elements, no screens, no people
+- negative-prompt: text, words, letters, numbers, logos, watermarks, UI elements, screens, people
 ```
 
-**Full assembled prompt**:
+**Full assembled campaign.md variant**:
 ```
-Multiple thin data streams of light converging from different directions
-into a single bright unified flow at the center-right of the frame.
-Confident, precise, sophisticated atmosphere, soft ambient glow
-illuminating the streams with subtle volumetric light.
-Deep purple #20124d background, streams in violet #8068ff tones,
-the convergence point highlighted with subtle mint #8affbc glow,
-overall palette dark and premium.
-Composition weighted toward upper-right quadrant,
-expansive dark negative space in the lower-left quadrant for text overlay.
-Premium editorial quality, clean rendering, sharp geometric detail,
-matte surfaces with edge lighting.
-No text, no words, no letters, no numbers, no logos, no watermarks,
-no UI elements, no screens, no people.
+- prompt: Multiple thin data streams of light converging from different
+  directions into a single bright unified flow at the center-right of the
+  frame. Confident, precise, sophisticated atmosphere, soft ambient glow
+  illuminating the streams with subtle volumetric light. Deep purple #20124d
+  background, streams in violet #8068ff tones, the convergence point
+  highlighted with subtle mint #8affbc glow, overall palette dark and
+  premium. Premium editorial quality, clean rendering, sharp geometric
+  detail, matte surfaces with edge lighting.
+- negative-prompt: text, words, letters, numbers, logos, watermarks,
+  UI elements, screens, people
 ```
+Note: Composition directives are auto-appended by the script for `classic` layout — do not include them in the prompt.
 
 ### Prompt Templates by Visual Style
 
-Every template below describes something **concrete and photographable**. Replace `[bracketed]` placeholders with campaign-specific details. Always include a camera/quality reference and the exclusion clause.
+Every template below describes something **concrete and photographable**. Replace `[bracketed]` placeholders with campaign-specific details. Always include a camera/quality reference. Use `- negative-prompt:` in campaign.md for exclusions — do not append them to the positive prompt.
 
 **Geological Texture (stat-hero, bold-type backgrounds)**:
 ```
@@ -788,8 +785,8 @@ fractures. [One vein / a cluster] pulses with bright mint #8affbc inner
 light. Deep purple #20124d base tones, violet #8068ff crystalline formations.
 Shot on Hasselblad medium format, extreme detail, shallow depth of field,
 studio rim lighting from above. [Composition directive].
-No text, no words, no letters, no numbers, no logos, no watermarks.
 ```
+`negative-prompt: text, words, letters, numbers, logos, watermarks`
 
 **Crystal Prism / Optics (floating-element, split backgrounds)**:
 ```
@@ -799,8 +796,8 @@ The prism is translucent [obsidian / quartz / geometric] with sharp edges,
 refracting light in precise angular patterns. Caustic light patterns scatter
 across the surface. Studio product photography, Hasselblad medium format,
 single key light from [direction]. [Background directive].
-No text, no words, no letters, no numbers, no logos, no watermarks.
 ```
+`negative-prompt: text, words, letters, numbers, logos, watermarks`
 
 **Aerial Convergence (classic, full-bleed backgrounds)**:
 ```
@@ -811,8 +808,8 @@ Cinematic drone photography, atmospheric fog, volumetric god rays.
 Deep purple #20124d terrain, violet #8068ff streams, [single mint #8affbc
 confluence point / highlight]. Shot on RED Komodo, anamorphic lens,
 filmic grain. [Composition directive].
-No text, no words, no letters, no numbers, no logos, no watermarks.
 ```
+`negative-prompt: text, words, letters, numbers, logos, watermarks`
 
 **Dark Dashboard / Data Viz (product-frame backgrounds)**:
 ```
@@ -822,9 +819,8 @@ streams flowing [direction], [behavior at stages]. Violet #8068ff and soft
 purple on near-black #0d0a1a interface. Subtle grid lines, clean rounded
 cards, modern data visualization. Bloomberg Terminal meets Apple design.
 Crisp, premium, enterprise-grade. [Composition directive].
-No text, no words, no letters, no numbers, no logos, no watermarks,
-no readable labels.
 ```
+`negative-prompt: text, words, letters, numbers, logos, watermarks, readable labels`
 
 **Command Center (enterprise, authority themes)**:
 ```
@@ -834,9 +830,8 @@ ambient lighting reflected on polished dark surfaces. [One screen highlighted
 with mint #8affbc accent]. Shallow depth of field, focus on [focal element].
 Architectural interior photography, shot on medium format, available light.
 [Composition directive].
-No text, no words, no letters, no numbers, no logos, no watermarks,
-no readable screen content.
 ```
+`negative-prompt: text, words, letters, numbers, logos, watermarks, readable screen content`
 
 **Night Cityscape (real-time, pulse, scale themes)**:
 ```
@@ -846,8 +841,8 @@ Streets and buildings edge-lit with deep purple #20124d ambient tones.
 [One building / intersection] highlighted with mint #8affbc glow.
 Cinematic night photography, long exposure light trails, atmospheric haze.
 [Composition directive].
-No text, no words, no letters, no numbers, no logos, no watermarks.
 ```
+`negative-prompt: text, words, letters, numbers, logos, watermarks`
 
 ### Prompt Modifiers (Add to Any Template)
 
@@ -925,6 +920,28 @@ Cost per campaign: ~$0.10-0.20 exploring (10-30 Schnell images) + ~$0.40 final (
 - **Different seed per visual variant**: When A/B testing visuals, each variant gets its own seed.
 - **Same seed across copy variants**: When A/B testing copy, keep the visual identical.
 - **Seed + image-to-image** (strength 0.3-0.5): For maximum consistency when the same seed produces too-different results across aspect ratios.
+
+---
+
+## 9a. Prompt Tips by Model
+
+The script auto-adapts prompts per model (hex→color names for Grok, instruction framing for Nano Banana, inlined negative prompts for all). These tips help write better prompts natively. See `creative-workflow.md` Model Personality Summary for full model profiles.
+
+**Grok Imagine** — write like a photo brief:
+- Use descriptive color names ("deep dark purple") not hex codes
+- Describe real scenes and materials, not abstract concepts
+- Skip camera references ("Hasselblad") — say "High detail" or "Cinematic"
+- No seed support — prompt specificity drives cross-size consistency
+
+**Nano Banana Pro** — write like instructions:
+- Hex color codes work (Gemini reasoning layer parses them)
+- Describe spatial layout explicitly ("object in upper-right, dark space in lower-left")
+- Be restrictive ("ONLY the prism, nothing else") to prevent over-interpretation
+- Add "minimal composition, vast empty dark space" for breathing room
+
+**Flux** — follow the 6-part architecture from Section 9 (subject → mood → color hex → composition → quality → exclusion)
+
+**Switching models mid-campaign**: The script handles basic conversion automatically. For best results, adjust prompt language to match the target model's style above.
 
 ---
 
@@ -1160,7 +1177,7 @@ Things that fail. Avoid these unconditionally.
 | Cropping one image across all formats | Cut-off elements, bad composition | Regenerate at each aspect ratio with same seed |
 | Competing CTAs ("Demo + Download") | Splits conversion intent | One CTA per ad, always |
 | AI "plastic" look (smooth, unnatural lighting) | Immediately recognizable as AI-generated | Specify "editorial photography style" or "studio lighting" in prompt |
-| Text artifacts in AI background | Looks broken/amateur | Generate 3-4 variants, select cleanest. Always include exclusion clause. |
+| Text artifacts in AI background | Looks broken/amateur | New seed + strong `negative-prompt: text, words, letters, writing, characters`. Regenerate with `--variant=N`. |
 
 ### Copy Anti-Patterns
 

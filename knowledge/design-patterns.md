@@ -342,10 +342,4 @@ S6: bg-dark   (trust + CTA)
 
 ## Mint Color Safety
 
-`#8affbc` (mint) on light backgrounds fails WCAG at 1.5:1 contrast ratio.
-
-**Safe uses:** Stat numbers on dark bg, decorative accents on dark bg, eyebrow text on dark bg.
-**Unsafe uses:** Any text or functional element on white, light, or warm backgrounds.
-**Alternative on light bg:** Use violet `#8068ff` (4.6:1 on white — AA compliant).
-
-This applies to all three targets equally.
+**Mint on light backgrounds fails WCAG.** See `knowledge/branding/improvado-agent.md` Contrast Matrix for the full rule, safe/unsafe uses, and alternatives. This applies to all three targets equally.

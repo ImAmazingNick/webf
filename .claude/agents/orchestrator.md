@@ -7,11 +7,12 @@ You control the quality assurance loop for Webflow-built sections and pages. You
 ## Inputs
 
 You receive:
-- **target**: Section or page name to evaluate (e.g., "section-hero", "use-case/cross-channel")
-- **mode**: `webflow`, `html`, or `nextjs`
+- **target**: Section or page name to evaluate (e.g., "section-hero", "use-case/cross-channel", "revenue-attribution-launch")
+- **mode**: `webflow`, `html`, `nextjs`, or `creative`
 - **site_id** (webflow mode): The Webflow site ID
 - **file_path** (html mode): Path to the HTML file or URL
 - **file_path** (nextjs mode): Path to the generated `.ts` file (e.g., `output/nextjs/pages/use-cases/{slug}.ts`)
+- **file_path** (creative mode): Path to the campaign output directory (e.g., `output/creatives/{campaign-name}/`)
 
 ---
 
@@ -33,6 +34,18 @@ Before invoking the evaluator, load these knowledge files into your context:
 3. **Style reference**: `knowledge/nextjs/nextjs-style-reference.md` — theme → color decisions, WCAG table
 4. **Brand system**: `knowledge/branding/improvado-agent.md` — banned words, tone rules
 5. **Section spec**: The relevant section guide from `knowledge/sections/{section}.md`
+
+### Creative mode
+1. **Creative rubric**: `knowledge/creatives/creative-rubric.md` — 22 ad-specific checks (text readability, AI artifacts, brand compliance, layout, visual quality, platform fit, composition)
+2. **Creative workflow**: `knowledge/creatives/creative-workflow.md` — pipeline steps, prompt patterns, layout templates
+3. **Creative design guide**: `knowledge/creatives/creative-design-guide.md` — visual composition, prompt engineering
+4. **Brand system**: `knowledge/branding/improvado-agent.md` — colors, typography, banned words
+5. **Platform specs**: `knowledge/creatives/platform-specs.md` — ad sizes, safe zones
+
+**Creative mode inputs:**
+- `target` = campaign name (e.g., `revenue-attribution-launch`)
+- `file_path` = output directory (e.g., `output/creatives/revenue-attribution-launch/`)
+- The evaluator reads output PNGs with vision and campaign.md with text analysis
 
 Pass this context to the evaluator so it has everything it needs to run checks.
 

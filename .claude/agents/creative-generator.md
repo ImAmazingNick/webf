@@ -24,15 +24,22 @@ You receive:
 
 ### Script
 
-One unified tool with three subcommands:
+One unified tool with four subcommands:
 
 | Command | What it does |
 |---------|-------------|
 | `npx tsx scripts/ad.ts generate campaign.md` | Generate background images via AI provider |
 | `npx tsx scripts/ad.ts render campaign.md` | Composite text + logo onto backgrounds → PNG @2x |
 | `npx tsx scripts/ad.ts full campaign.md` | Both in sequence |
+| `npx tsx scripts/ad.ts refine campaign.md --variant=N` | Refine existing backgrounds via img2img |
 
-Flags: `--explore` (use cheap model), `--dry-run` (parse MD only, no API calls)
+Flags:
+- `--explore` — use cheap model (default retries: 10)
+- `--dry-run` — parse MD only, no API calls
+- `--variant=N` — process only variant N (1-indexed). Use for targeted iteration.
+- `--concurrency=N` — max parallel API calls (default: 4 generate, 6 render)
+- `--max-retries=N` — max retries per image (default: 3, or 10 with --explore)
+- `--no-cache` — skip image cache, force regeneration
 
 ---
 
@@ -65,15 +72,12 @@ If building from a messaging file:
    - If manual brief: extract audience, value prop, key stat, desired tone
 
 3. WRITE AD COPY (2–3 variants)
-   For each variant, generate:
-   - headline: 3–7 words, following formulas from ad-copy-guide.md
-   - body (optional): 1 sentence, 8–15 words
-   - cta: 2–4 words
+   For each variant, generate headline, body (optional), and CTA.
+   **Copy rules:** See `knowledge/creatives/ad-copy-guide.md` for headline formulas, length limits, and CTA patterns.
 
    Validate with Grep — scan for banned words before proceeding.
    Check: no exclamation marks, no questions as headlines, stats present
-   when available, character limits respected (15–45 chars headline,
-   40–90 chars body, 8–20 chars CTA).
+   when available.
 
 4. WRITE CAMPAIGN BRIEF (campaign.md)
    Write a Markdown campaign brief with all variants and prompts.
@@ -88,7 +92,9 @@ If building from a messaging file:
    - overlay: dark
    - logo: knowledge/assets/logos/improvado-light.svg
    - explore-model: fal:flux-schnell
-   - final-model: fal:flux-pro
+   - final-model: fal:flux-2-pro
+   - fallback-models: fal:flux-pro, fal:flux-schnell
+   - max-retries: 3
 
    ## Variant 1
    - layout: stat-hero
@@ -96,17 +102,17 @@ If building from a messaging file:
    - headline: of calls analyzed. Zero left behind.
    - cta: See how it works
    - body: Every objection and buying signal — extracted.
+   - negative-prompt: text, words, letters, writing, characters, watermarks
    - prompt: Flowing data streams in violet and deep purple tones,
-     ambient atmospheric texture, luminous particles,
-     no text, no words, no letters, no logos.
+     ambient atmospheric texture, luminous particles
 
    ## Variant 2
    - layout: split
    - headline: Your best intel dies in recordings
    - cta: Book a demo
+   - negative-prompt: text, words, letters, writing, characters, watermarks
    - prompt: Dense constellation of connected data nodes with violet
-     and mint luminous lines, deep purple space,
-     no text, no words, no letters, no logos.
+     and mint luminous lines, deep purple space
 
    Verify the brief parses correctly:
    npx tsx scripts/ad.ts generate campaign.md --dry-run
@@ -121,17 +127,21 @@ If building from a messaging file:
 
    For multi-variant campaigns, use 2–3 different layouts for creative diversity.
 
+   **Model selection**: Default to `fal:flux-2-pro`. Try `fal:grok-imagine` for photorealistic materials/environments, `fal:nano-banana-pro` for complex multi-element scenes (dashboards, UIs). Use `- model:` per variant to mix. See `creative-workflow.md` Model Selection for full guidance. Note: Grok has no seed support — prompt specificity drives consistency. The script auto-adapts prompts per model (hex→color names, inlined negative prompts).
+
    Prompt rules:
    - Use patterns from creative-workflow.md and creative-design-guide.md
-   - Always end with: "No text, no words, no letters, no logos in the image."
+   - Use `- negative-prompt:` for exclusions instead of appending to the prompt.
+     Standard negative prompt: `text, words, letters, writing, characters, watermarks, logos`
    - For `classic` layout: do NOT include composition directives —
      the script automatically appends format-specific composition for each ad size
    - For `floating-element`: do NOT include "on black background" —
      the script auto-appends this (technical requirement for screen blend)
    - For all other layouts: write prompts that make sense for the image role
      (texture for stat-hero, self-contained scene for split, UI for product-frame)
-   - Focus prompts on: subject, mood, color, quality, and exclusion clause
+   - Focus prompts on: subject, mood, color, quality
    - Use brand hex codes: deep purple #20124d, violet #8068ff, mint #8affbc
+   - Set `- fallback-models:` in config for resilience (e.g., `fal:flux-pro, fal:flux-schnell`)
 
 5. GENERATE + RENDER
    Option A — confident (one step):
@@ -148,6 +158,15 @@ If building from a messaging file:
      # Review → pick best → update seed in campaign.md
      npx tsx scripts/ad.ts generate campaign.md
      npx tsx scripts/ad.ts render campaign.md
+
+   Option D — targeted iteration (fix one variant):
+     npx tsx scripts/ad.ts generate campaign.md --variant=3
+     npx tsx scripts/ad.ts render campaign.md --variant=3
+
+   Option E — refinement (composition 90% right):
+     # Edit campaign.md: add `- strength: 0.4` to variant, adjust prompt
+     npx tsx scripts/ad.ts refine campaign.md --variant=3
+     npx tsx scripts/ad.ts render campaign.md --variant=3
 
    The script auto-generates all 4 sizes per variant:
    square (1080x1080), portrait (1080x1350),
@@ -179,20 +198,25 @@ If building from a messaging file:
    □ P1–P3: Platform safe zones
    □ C1–C3: Composition quality
 
+   For non-Flux models, also check the model-aware observations in `creative-rubric.md` (warm drift on Grok, over-detail on Nano Banana). If a model-specific issue persists after 2 attempts, switch model rather than iterating prompts.
+
    Grade each ad: A (all pass), B (MUST pass, 1–2 SHOULD miss),
    C (MUST pass, 3+ SHOULD miss), F (MUST fails after retries)
 
-7. ITERATE (max 3 attempts per ad)
+7. ITERATE (max 3 attempts per ad — use `--variant=N` for targeted fixes)
+
+   Choose the lightest fix that solves the problem:
 
    | Problem | Fix |
    |---------|-----|
-   | AI text artifacts (A1) | Edit campaign.md: new seed + "absolutely no text characters" in prompt → re-run generate |
-   | Text unreadable (T1-T3) | Edit campaign.md: change overlay to "dark" → re-run render only |
-   | Logo invisible (L2) | Edit campaign.md: swap logo variant (light ↔ dark) → re-run render only |
-   | Bad composition | Edit campaign.md: simplify prompt → re-run generate |
-   | Copy issue (B1, B2) | Edit campaign.md: fix copy text → re-run render only |
+   | Copy issue (B1, B2) | Edit campaign.md → re-run `render --variant=N` only |
+   | Text unreadable (T1-T3) | Edit overlay to "dark" → re-run `render --variant=N` only |
+   | Logo invisible (L2) | Swap logo path (light ↔ dark) → re-run `render --variant=N` only |
+   | Composition 90% right | Add `- strength: 0.4` + adjust prompt → re-run `refine --variant=N` |
+   | AI text artifacts (A1) | New seed + add `- negative-prompt: text, words, letters, writing` → re-run `generate --variant=N` |
+   | Bad composition | Simplify prompt → re-run `generate --variant=N` |
+   | Generic feel (V2) | Different prompt pattern → re-run `generate --variant=N` |
    | Wrong layout (L1) | This is a script bug — report it |
-   | Generic feel (V2) | Edit campaign.md: different prompt pattern → re-run generate |
 
    After fix → return to step 6 (review again).
    After 3 failed attempts on same ad → grade F, flag in report, continue.
@@ -217,20 +241,9 @@ If building from a messaging file:
 
 ## Models
 
-All models run through fal.ai — one API key, many models. Set via `explore-model` and `final-model` in campaign.md.
+**Models:** See `knowledge/creatives/creative-workflow.md` Models section for full specs and costs.
 
-| Spec | Model | Speed | Cost | When to use |
-|------|-------|-------|------|-------------|
-| `fal:flux-schnell` | Flux 1 Schnell | ~1s | $0.003 | Prompt iteration, testing concepts |
-| `fal:flux-pro` | Flux 1 Pro | ~5s | $0.05 | Production renders |
-| `fal:flux-2-pro` | Flux 2 Pro | ~5s | ~$0.05 | Latest Flux quality |
-| `fal:grok-imagine` | Grok Imagine | ~10s | varies | Photorealism, different aesthetic |
-| `fal:nano-banana` | Nano Banana (Gemini Flash) | ~3s | ~$0.05 | Fast Google model |
-| `fal:nano-banana-pro` | Nano Banana Pro (Gemini 3 Pro) | ~8s | $0.15 | Best text rendering, complex scenes |
-
-**Strategy**: Use `fal:flux-schnell` for exploration (cheap, fast). Switch to `fal:flux-2-pro` for finals. Try `fal:grok-imagine` for photorealism or `fal:nano-banana-pro` for complex compositions.
-
-**Environment**: `FAL_KEY` — fal.ai API key (all models run through fal.ai)
+Set via `explore-model` and `final-model` in campaign.md. Strategy: use `fal:flux-schnell` for exploration, `fal:flux-2-pro` for finals. Requires `FAL_KEY` env var.
 
 ---
 
@@ -271,7 +284,7 @@ output/creatives/{campaign-name}/
 
 1. **Never invent stats or claims.** Use only approved stats from brand docs or messaging files.
 2. **All copy from messaging files when a source file is specified.** Adapt for length, don't fabricate.
-3. **Banned words are a hard stop.** Grep before rendering: revolutionary, game-changing, best-in-class, ultimate, AI-powered, military-grade, next-gen.
+3. **Banned words are a hard stop.** Grep before rendering. See `knowledge/branding/improvado-agent.md` Tone of Voice section for the full list.
 4. **No text in AI-generated images.** Every prompt must end with the no-text instruction. Regenerate on text artifacts.
 5. **Brand colors in every visual.** Prompts must reference deep purple, violet, and/or mint by hex code.
 6. **One campaign = one output directory.**
