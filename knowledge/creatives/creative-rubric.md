@@ -45,6 +45,12 @@
 | L3 | Blend mode renders correctly (stat-hero, floating-element) | No black rectangle visible. Texture/element blends cleanly into gradient. |
 | L4 | Split layout zones clearly defined (split only) | Text zone and image zone have clean separation. No text over uncontrolled background. |
 
+### Headline-Visual Alignment
+
+| # | Check | How to verify |
+|---|-------|---------------|
+| H1 | Visual reinforces the headline concept | If headline says "revenue attribution," the image shows attribution flows — not abstract streams. If headline says "call intelligence," the image shows call/conversation UI — not generic dashboards. The visual and headline should tell the same story. |
+
 ---
 
 ## SHOULD PASS (quality — fix if within retry budget)

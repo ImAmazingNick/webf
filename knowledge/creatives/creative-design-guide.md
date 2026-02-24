@@ -57,49 +57,50 @@ The brand's Taste Dials map directly to AI image generation decisions:
 
 ### Concept-to-Visual Mapping
 
-When generating visuals for specific campaigns, translate product concepts into concrete visual metaphors:
+For each concept, ask: **"What would this feature look like if I screenshot the product?"** If it has a UI — show that UI. If no UI exists — use a physical metaphor. Abstract textures are secondary options for layouts that blend at low opacity (stat-hero at 35%, bold-type at 5%).
 
-| Product Concept | Visual Strategy | Prompt Fragment |
-|----------------|----------------|-----------------|
-| Data unification | Aerial bioluminescent river system — hundreds of tiny streams converging into one bright river | "aerial overhead view of vast dark landscape where hundreds of tiny bioluminescent streams converge into a single bright river of violet light, cinematic drone photography, atmospheric fog" |
-| Cross-channel intelligence | 3D crystal prism refracting light into spectral streams | "dramatic 3D crystal prism splitting a beam of white light into multiple violet and mint spectral streams, caustic light patterns, studio product photography, Hasselblad quality" |
-| Real-time insights | Time-lapse cityscape with data pulse wave | "long exposure cityscape at night from rooftop, a pulse wave of violet light rippling outward across the city grid, deep purple sky, editorial night photography" |
-| Marketing attribution | Dark-themed Sankey diagram / journey visualization | "dark-themed analytics dashboard with glowing Sankey diagram showing journey flows through funnel stages, violet and purple streams on near-black interface, Bloomberg Terminal meets Apple design" |
-| Data quality | Macro crystalline mineral formation with perfect facets | "macro photography of rare crystalline mineral formation with mathematically perfect facets refracting violet light, deep purple geode interior, shallow depth of field, Hasselblad medium format" |
-| Automation / AI agent | Autonomous robotic arm or mechanism in motion | "precision robotic arm in dark factory environment assembling a constellation of glowing violet data points, single mint laser guide beam, cinematic industrial photography, volumetric haze" |
-| Revenue growth | Macro cracked obsidian with luminous crystal veins | "macro photography of cracked obsidian stone with veins of luminous violet crystal running through fractures, one vein glows mint green, geological texture, studio rim lighting" |
-| Executive reporting | Premium dark command center environment | "sleek executive command center at night, wall of curved ultra-thin monitors showing data visualizations, deep purple ambient lighting reflected on polished dark surfaces, architectural photography" |
-| Churn prevention | Tensegrity structure under controlled stress | "elegant tensegrity sculpture of dark metal rods and glowing violet wire, one wire pulses mint green under tension, dramatic side lighting against pure dark background, fine art photography" |
-| Agency operations | Conductor's podium with orchestral light trails | "conductor's podium in dark concert hall, long exposure light trails from multiple instruments forming parallel violet arcs, mint spotlight on the podium, cinematic concert photography" |
+| Product Concept | Primary Visual (show the product) | Texture Alternative (stat-hero/bold-type only) |
+|----------------|-----------------------------------|-----------------------------------------------|
+| Data unification | Unified dark dashboard — 7+ source icons feeding into one clean analytics view, card-based layout, violet chart accents | Light streams converging into one bright flow |
+| Cross-channel intelligence | Multi-channel dashboard — side-by-side platform cards (Meta, Google, LinkedIn) with unified KPI row, dark UI | Crystal prism splitting light into spectral streams |
+| Real-time insights | Live monitoring screen — real-time sparklines, status badges, alert indicators on dark interface | Night cityscape with violet pulse wave |
+| Marketing attribution | Attribution flow — Sankey diagram tracing touchpoints from first click to revenue, violet streams on dark canvas | Luminous paths flowing through dark void |
+| Data quality | Data quality scorecard — validation matrix with pass/fail indicators, anomaly charts, mint status badges | Crystalline mineral with perfect geometric facets |
+| Automation / AI agent | Agent action log — dark UI with queued actions, status pills, reasoning chain, one task highlighted in mint | Robotic arm assembling glowing data points |
+| Revenue growth | Revenue dashboard — ascending curve with attribution breakdown, funnel stages, violet/mint chart accents | Cracked obsidian with luminous crystal veins |
+| Executive reporting | Executive summary — 4-6 KPI cards with trend arrows, minimal dark layout, one insight highlighted | Command center with curved monitor wall |
+| Churn prevention | Customer health dashboard — risk heatmap, engagement scores, churn probability gauge, alert flags | Tensegrity sculpture under controlled stress |
+| Agency operations | Multi-client portfolio — account cards with performance rings, unified status overview, dark admin UI | Conductor's podium with orchestral light trails |
 
 ### Elements That Work (On-Brand)
 
-Think concrete, cinematic, tactile — not abstract and empty. Every prompt should describe something a photographer could shoot or a cinematographer could light.
+**Product visuals (primary — use by default)**
+- Dark analytics dashboards with chart accents in violet/mint (shows the product)
+- Sankey diagrams, alluvial charts, funnel visualizations on dark canvas (data storytelling)
+- Dashboard components: KPI cards, sparkline charts, status indicators, attribution flows
+- Agent interfaces: action queues, reasoning chains, status pills, AI-driven workflows
+- Browser chrome frames around product UI (gives context and depth)
 
-**Physical materials and textures**
-- Cracked obsidian with luminous crystal veins (geological, premium)
+**Textures and materials (secondary — for stat-hero/bold-type texture layers)**
+- Cracked obsidian with luminous crystal veins (premium geological texture)
+- Translucent crystal prisms refracting colored light (isolated on black for floating-element)
 - Brushed dark metal surfaces with violet edge lighting (industrial elegance)
-- Translucent crystal prisms refracting colored light (optical beauty)
-- Polished dark marble with subtle violet reflections (executive gravitas)
 
 **Environments and spaces**
 - Dark command centers with curved monitor walls (enterprise authority)
-- Aerial landscapes with bioluminescent river systems (data convergence at scale)
-- Night cityscapes with data pulse waves (real-time intelligence)
-- Dark concert halls with long-exposure light trails (orchestration)
+- Executive office with ultrawide monitor showing data interface (product in context)
+- Night cityscapes with data pulse waves (real-time intelligence themes)
 
 **Light and depth**
-- Volumetric god rays cutting through atmospheric fog
-- Caustic light patterns from refracting objects
+- Soft ambient glow from screens illuminating desk/room surfaces
 - Single-source rim lighting on dark objects (studio product photography)
-- Long-exposure light trails creating flowing paths
+- Shallow depth of field with sharp UI foreground, blurred environment
 
-**Camera and quality references** (add to every prompt)
-- "Shot on Hasselblad medium format" — triggers high-detail rendering
-- "Cinematic drone photography" — for aerial/landscape scenes
-- "Studio product photography, single key light" — for object-focused shots
-- "Editorial photography for Wired magazine" — for tech-premium aesthetic
-- "Shallow depth of field, filmic grain" — for texture and depth
+**Quality references** (add to every prompt)
+- "Bloomberg Terminal meets Apple design" — for dashboard/product visuals
+- "Crisp rendering, anti-aliased, premium enterprise UI" — for interfaces
+- "Shot on Hasselblad medium format" — for material/texture scenes
+- "Studio product photography, single key light" — for isolated objects
 
 ### Elements That Fail (Off-Brand)
 
@@ -773,107 +774,91 @@ matte surfaces with edge lighting
 ```
 Note: Composition directives are auto-appended by the script for `classic` layout — do not include them in the prompt.
 
-### Prompt Templates by Visual Style
+### Prompt Architecture
 
-Every template below describes something **concrete and photographable**. Replace `[bracketed]` placeholders with campaign-specific details. Always include a camera/quality reference. Use `- negative-prompt:` in campaign.md for exclusions — do not append them to the positive prompt.
+Do not copy templates. Write every prompt from scratch by reasoning about what visual serves this specific campaign. Answer the 5 Decision Questions, then assemble using the 5-Part Structure.
 
-**Geological Texture (stat-hero, bold-type backgrounds)**:
-```
-Macro photography of [cracked obsidian / dark volcanic rock / black marble]
-with veins of luminous [violet / purple] crystal running through deep
-fractures. [One vein / a cluster] pulses with bright mint #8affbc inner
-light. Deep purple #20124d base tones, violet #8068ff crystalline formations.
-Shot on Hasselblad medium format, extreme detail, shallow depth of field,
-studio rim lighting from above. [Composition directive].
-```
-`negative-prompt: text, words, letters, numbers, logos, watermarks`
+### Decision Questions (answer before writing any prompt)
 
-**Crystal Prism / Optics (floating-element, split backgrounds)**:
-```
-Dramatic 3D crystal prism splitting a beam of white light into [count]
-spectral streams — [describe the color split: violet, purple, mint].
-The prism is translucent [obsidian / quartz / geometric] with sharp edges,
-refracting light in precise angular patterns. Caustic light patterns scatter
-across the surface. Studio product photography, Hasselblad medium format,
-single key light from [direction]. [Background directive].
-```
-`negative-prompt: text, words, letters, numbers, logos, watermarks`
+| # | Question | How to Answer |
+|---|----------|---------------|
+| 1 | **What concept does the headline sell?** | Extract the core idea: "revenue attribution", "call intelligence", "data unification", "autonomous agent." The visual must show this concept, not something abstract. |
+| 2 | **What does this concept look like as a product?** | If the concept has a UI — show the UI (dashboard, chart, agent workspace). If no UI exists — use a physical metaphor (command center, geological texture). Default: product UI. |
+| 3 | **What mood serves this campaign?** | Map campaign goal → mood: trust/enterprise → **serene** (calm, still, vast space, soft glow). Product/feature → **confident** (precise, structured, controlled light, clear focal point). Launch/engagement → **dynamic** (flowing, ascending, kinetic energy, volumetric light). |
+| 4 | **How much visual density does this layout allow?** | `classic` = rich (overlay protects text). `split` = rich (own zone). `product-frame` = moderate (inside frame). `stat-hero` = minimal (texture at 35% opacity). `floating-element` = single isolated element. `bold-type` = none or near-invisible. |
+| 5 | **What is the ONE focal subject?** | Pick one main element — a dashboard, a single chart, a physical object. Not "multiple streams and nodes and particles." Minimalism dial = 8: if you described more than 2-3 elements, simplify. |
 
-**Aerial Convergence (classic, full-bleed backgrounds)**:
-```
-Aerial overhead view of a vast dark landscape where hundreds of tiny
-bioluminescent streams converge into a single bright river of [violet / mint]
-light. The streams glow like a living river system against dark terrain.
-Cinematic drone photography, atmospheric fog, volumetric god rays.
-Deep purple #20124d terrain, violet #8068ff streams, [single mint #8affbc
-confluence point / highlight]. Shot on RED Komodo, anamorphic lens,
-filmic grain. [Composition directive].
-```
-`negative-prompt: text, words, letters, numbers, logos, watermarks`
+### 5-Part Prompt Structure
 
-**Dark Dashboard / Data Viz (product-frame backgrounds)**:
-```
-Dark-themed analytics dashboard with a glowing [Sankey diagram / network graph
-/ funnel visualization] showing [what the data represents]. Multiple colored
-streams flowing [direction], [behavior at stages]. Violet #8068ff and soft
-purple on near-black #0d0a1a interface. Subtle grid lines, clean rounded
-cards, modern data visualization. Bloomberg Terminal meets Apple design.
-Crisp, premium, enterprise-grade. [Composition directive].
-```
-`negative-prompt: text, words, letters, numbers, logos, watermarks, readable labels`
+Write each prompt with these 5 parts, in this order (models weight earlier tokens more):
 
-**Command Center (enterprise, authority themes)**:
-```
-Sleek executive command center at night, [curved wall of ultra-thin monitors /
-single massive display] showing [data visualization type]. Deep purple #20124d
-ambient lighting reflected on polished dark surfaces. [One screen highlighted
-with mint #8affbc accent]. Shallow depth of field, focus on [focal element].
-Architectural interior photography, shot on medium format, available light.
-[Composition directive].
-```
-`negative-prompt: text, words, letters, numbers, logos, watermarks, readable screen content`
+| Part | Word Budget | What to Write | Example |
+|------|------------|---------------|---------|
+| **SUBJECT** | 50-80 words | The specific visual — describe exactly what the image shows. Must directly relate to the headline's concept. Be concrete: name the chart type, the UI pattern, the physical material. | "Dark-themed revenue attribution dashboard showing a Sankey diagram with channel cards (Facebook, LinkedIn, Email) on the left, flowing attribution lines converging to a $2.4M revenue metric on the right, highlighted in mint." |
+| **MOOD** | 20-30 words | Mood keywords from Decision Question 3. | "Confident, precise atmosphere. Controlled directional lighting from upper-left. Clean geometry, deliberate spacing." |
+| **COLOR** | 20-30 words | Apply the 60-30-10 rule with hex codes. Say which element gets the 10% mint accent. | "Deep purple #20124d interface. Violet #8068ff attribution lines. Mint #8affbc on the revenue total. 60% dark void, 30% violet accents, 10% mint highlight." |
+| **QUALITY** | 15-20 words | Rendering reference appropriate to the subject type. | UI/dashboards: "Bloomberg Terminal meets Apple design. Crisp anti-aliased rendering, premium enterprise UI." Physical materials: "Hasselblad medium format, studio rim lighting, extreme detail." |
+| **EXCLUSION** | via `negative-prompt` field | Standard: `text, words, letters, numbers, logos, watermarks`. Add `readable labels` for dashboards. | `- negative-prompt: text, words, letters, numbers, logos, watermarks, readable labels` |
 
-**Night Cityscape (real-time, pulse, scale themes)**:
-```
-Long exposure night cityscape from rooftop, a pulse wave of violet #8068ff
-light rippling outward across the city grid from a central point.
-Streets and buildings edge-lit with deep purple #20124d ambient tones.
-[One building / intersection] highlighted with mint #8affbc glow.
-Cinematic night photography, long exposure light trails, atmospheric haze.
-[Composition directive].
-```
-`negative-prompt: text, words, letters, numbers, logos, watermarks`
+**Do NOT include composition/position directives** — the script auto-appends these per ad format (`classic` and `floating-element` get auto-suffixes).
 
-### Prompt Modifiers (Add to Any Template)
+### Mood Keywords Reference
 
-**For serene mood** (trust, enterprise):
+| Mood | Keywords to Include in Prompt |
+|------|------------------------------|
+| **Serene** | calm, serene, soft diffused lighting, expansive negative space, still, quiet confidence, ambient glow |
+| **Confident** | precise, structured, balanced composition, deliberate geometry, controlled lighting, clear focal point |
+| **Dynamic** | dynamic energy, flowing motion, ascending trajectory, kinetic feeling, purposeful movement, volumetric light |
+
+**Depth cue** (add when the image feels flat): "shallow depth of field, softly blurred background, three-layer depth: distant void, mid-ground subject, subtle foreground bokeh."
+
+**Simplicity cue** (add when the image is too busy): "minimal elements, vast empty dark space, only [1-2] visual objects in the entire frame."
+
+### Worked Example A: Revenue Attribution Campaign
+
 ```
-...calm, serene atmosphere, soft diffused lighting, expansive negative space,
-still and contemplative, quiet confidence...
+Headline: "$2.4M saved in year one"
+Layout: stat-hero
+
+Decision Questions:
+1. Concept: revenue attribution — showing which channels drive revenue
+2. Product UI? Yes — attribution dashboard with Sankey flow
+3. Mood: confident (finance leaders, action-takers)
+4. Density: stat-hero = minimal texture (35% opacity blend)
+   → simplify the dashboard to just the Sankey flow, no full UI chrome
+5. Focal subject: one Sankey diagram showing channel-to-revenue flow
+
+Prompt:
+- prompt: Revenue attribution Sankey diagram with channel cards (Facebook,
+  LinkedIn, Email) flowing through conversion stages to a revenue metric
+  highlighted in mint #8affbc. Violet #8068ff flow lines on deep purple
+  #20124d background. Precise, structured composition. Crisp vector
+  rendering, clean data lines, premium editorial quality.
+- negative-prompt: text, words, letters, numbers, logos, watermarks, labels
 ```
 
-**For confident mood** (product, features):
-```
-...precise, structured, balanced composition, deliberate geometry,
-controlled lighting with clear focal point...
-```
+### Worked Example B: AI Agent Launch Campaign
 
-**For dynamic mood** (launch, engagement):
 ```
-...dynamic energy, flowing motion, ascending trajectory,
-kinetic feeling frozen in a single frame, purposeful movement...
-```
+Headline: "Dashboards wait. The agent acts."
+Layout: classic
 
-**For depth** (any campaign):
-```
-...shallow depth of field, softly blurred background elements,
-three-layer depth: distant void, mid-ground subject, subtle foreground bokeh...
-```
+Decision Questions:
+1. Concept: autonomous AI agent — proactive action vs passive dashboards
+2. Product UI? Yes — agent workspace with action queue
+3. Mood: dynamic (launch campaign, energy, contrast)
+4. Density: classic = rich (overlay protects text readability)
+5. Focal subject: agent workspace showing active task processing
 
-**For "less is more"** (when previous prompt was too busy):
-```
-...minimal elements, vast empty dark space, only [1-2] visual objects
-in the entire frame, extreme negative space, breathing room...
+Prompt:
+- prompt: Dark-themed AI agent workspace showing an autonomous action
+  queue processing five marketing tasks simultaneously. Status pills
+  glowing mint #8affbc for active tasks, violet #8068ff for queued.
+  One task expanded showing a reasoning chain. Deep purple #20124d
+  sidebar. Dynamic energy, ascending task flow. Bloomberg meets Linear
+  app design. Crisp rendering, anti-aliased, premium enterprise UI.
+- negative-prompt: text, words, letters, numbers, logos, watermarks,
+  readable labels
 ```
 
 ### Clear Space Directives by Format

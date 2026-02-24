@@ -43,43 +43,102 @@ Flags:
 
 ---
 
-## Context Loading
+## Context Loading (Progressive — Read What You Need When You Need It)
 
-Before generating, read these files:
+**Phase 1 — Brief + Copy** (read before writing ad copy):
+1. `knowledge/creatives/ad-copy-guide.md` — headline formulas, CTA patterns, tone rules
+2. `knowledge/branding/improvado-agent.md` — brand tokens, banned words
+3. Messaging file: `knowledge/messaging/use-cases/{slug}.md` or `knowledge/messaging/homepage.md`
 
-1. `knowledge/creatives/creative-workflow.md` — pipeline steps and prompt patterns
-2. `knowledge/creatives/creative-design-guide.md` — visual composition, prompt engineering, layout patterns, overlay rules, QA checklist
-3. `knowledge/creatives/platform-specs.md` — ad sizes and platform rules
-4. `knowledge/creatives/ad-copy-guide.md` — headline formulas, CTA patterns, tone rules
-5. `knowledge/creatives/creative-rubric.md` — quality checks for reviewing output
-6. `knowledge/branding/improvado-agent.md` — brand tokens, colors, typography, banned words
-7. `knowledge/branding/TASTE.md` — aesthetic philosophy and anti-vibes
+**Phase 2 — Visual Strategy** (read before choosing layout or writing prompts):
+4. `knowledge/creatives/creative-design-guide.md` — sections 1-2 (mood spectrum, visual vocabulary)
+5. `knowledge/creatives/creative-workflow.md` — layout system, model selection
 
-If building from a messaging file:
-8. `knowledge/messaging/use-cases/{slug}.md` — use case content
-   OR `knowledge/messaging/homepage.md` — homepage content
+**Phase 3 — Prompt Writing** (read before writing prompts):
+6. `knowledge/creatives/creative-design-guide.md` — section 9 (prompt architecture, decision questions)
+
+**Phase 4 — Review** (read before reviewing output):
+7. `knowledge/creatives/creative-rubric.md` — quality checks
+8. `knowledge/creatives/platform-specs.md` — ad sizes and platform rules
 
 ---
 
 ## Generation Sequence
 
 ```
-1. READ context files (see above)
-
-2. EXTRACT brief
+1. READ BRIEF + COPY CONTEXT (Phase 1 files)
    - If messaging file: pull hook.headline, hook.subheadline, pain_bullets,
      differentiators, approved stats
    - If manual brief: extract audience, value prop, key stat, desired tone
 
-3. WRITE AD COPY (2–3 variants)
+2. WRITE AD COPY (2–3 variants)
    For each variant, generate headline, body (optional), and CTA.
-   **Copy rules:** See `knowledge/creatives/ad-copy-guide.md` for headline formulas, length limits, and CTA patterns.
+   See `ad-copy-guide.md` for headline formulas, length limits, CTA patterns.
 
    Validate with Grep — scan for banned words before proceeding.
    Check: no exclamation marks, no questions as headlines, stats present
    when available.
 
-4. WRITE CAMPAIGN BRIEF (campaign.md)
+3. UNDERSTAND INTENT (read Phase 2 files, then reason per variant)
+   For each variant, answer these three questions:
+
+   a. What's the CORE CONCEPT in this headline?
+      Extract the specific idea: "revenue attribution", "call intelligence",
+      "data unification", "autonomous agent." This concept drives the visual.
+
+   b. What does this concept LOOK LIKE as a product?
+      If it has a UI → describe that UI (dashboard, chart, agent workspace).
+      If no UI exists → use a physical metaphor (command center, texture).
+      Default: product UI. Check the Concept-to-Visual Mapping table in
+      creative-design-guide.md Section 2 for guidance.
+
+   c. What MOOD serves this campaign goal?
+      Trust/enterprise → serene (calm, still, vast space, soft glow)
+      Product/feature → confident (precise, structured, controlled light)
+      Launch/engagement → dynamic (flowing, ascending, kinetic energy)
+
+4. CHOOSE LAYOUT + VISUAL STRATEGY
+   Layout selection (informed by intent from step 3):
+   - `classic` — default. Rich visual, overlay protects text readability.
+   - `stat-hero` — when the brief has a strong stat ($2.4M, 100%, 38 hrs).
+     Visual is texture at 35% opacity — keep it minimal.
+   - `split` — clean two-zone structure. Visual fills its own zone.
+   - `product-frame` — for product marketing. Shows UI in browser chrome.
+   - `bold-type` — when the headline is exceptionally strong (prompt optional).
+   - `floating-element` — isolated subject on black, unique depth.
+
+   For multi-variant campaigns, use 2–3 different layouts for creative diversity.
+
+   **Model selection**: Default to `fal:flux-2-pro`. Try `fal:grok-imagine`
+   for photorealistic materials/environments, `fal:nano-banana-pro` for complex
+   multi-element scenes. See `creative-workflow.md` Model Selection. The script
+   auto-adapts prompts per model.
+
+5. WRITE CUSTOM PROMPTS (read Phase 3 files)
+   For each variant, answer the 5 Decision Questions from
+   creative-design-guide.md Section 9, then write using the 5-Part Structure:
+
+   SUBJECT (50-80 words) → MOOD (20-30 words) → COLOR (20-30 words)
+   → QUALITY (15-20 words) → EXCLUSION (via negative-prompt field)
+
+   Rules:
+   - Write from scratch — do not copy templates
+   - The visual must reinforce what the headline says
+   - Use `- negative-prompt:` for exclusions (standard: text, words,
+     letters, writing, characters, watermarks, logos)
+   - For `classic`: do NOT include composition directives — script
+     auto-appends per format
+   - For `floating-element`: do NOT include "on black background" —
+     script auto-appends this
+   - Use brand hex codes: deep purple #20124d, violet #8068ff,
+     mint #8affbc
+   - Apply 60-30-10 color rule: 60% purple, 30% violet, 10% mint accent
+
+   VALIDATE before proceeding: "Does this visual reinforce the headline?"
+   If headline says "revenue attribution" but visual shows abstract streams,
+   rewrite the prompt.
+
+6. WRITE CAMPAIGN.MD
    Write a Markdown campaign brief with all variants and prompts.
    Use the Write tool to create the file, then verify with --dry-run.
 
@@ -96,54 +155,19 @@ If building from a messaging file:
    - fallback-models: fal:flux-pro, fal:flux-schnell
    - max-retries: 3
 
-   ## Variant 1
+   ## Variant 1 — [descriptive name]
    - layout: stat-hero
-   - stat: 100%
-   - headline: of calls analyzed. Zero left behind.
-   - cta: See how it works
-   - body: Every objection and buying signal — extracted.
-   - negative-prompt: text, words, letters, writing, characters, watermarks
-   - prompt: Flowing data streams in violet and deep purple tones,
-     ambient atmospheric texture, luminous particles
-
-   ## Variant 2
-   - layout: split
-   - headline: Your best intel dies in recordings
+   - stat: $2.4M
+   - headline: saved when silos *disappear*
    - cta: Book a demo
    - negative-prompt: text, words, letters, writing, characters, watermarks
-   - prompt: Dense constellation of connected data nodes with violet
-     and mint luminous lines, deep purple space
+   - prompt: [agent writes a custom prompt using 5-Part Structure —
+     SUBJECT describing the specific product visual that serves this
+     headline → MOOD keywords → COLOR with hex codes → QUALITY reference]
 
-   Verify the brief parses correctly:
-   npx tsx scripts/ad.ts generate campaign.md --dry-run
+   Verify: npx tsx scripts/ad.ts generate campaign.md --dry-run
 
-   Layout selection:
-   - `classic` — default, safe bet for any campaign
-   - `stat-hero` — when the brief has a strong stat ($2.4M, 100%, 38 hrs)
-   - `split` — clean two-zone structure, guaranteed text contrast
-   - `product-frame` — for product marketing / demo campaigns
-   - `bold-type` — when the headline is exceptionally strong (prompt optional)
-   - `floating-element` — for visual variety, unique depth
-
-   For multi-variant campaigns, use 2–3 different layouts for creative diversity.
-
-   **Model selection**: Default to `fal:flux-2-pro`. Try `fal:grok-imagine` for photorealistic materials/environments, `fal:nano-banana-pro` for complex multi-element scenes (dashboards, UIs). Use `- model:` per variant to mix. See `creative-workflow.md` Model Selection for full guidance. Note: Grok has no seed support — prompt specificity drives consistency. The script auto-adapts prompts per model (hex→color names, inlined negative prompts).
-
-   Prompt rules:
-   - Use patterns from creative-workflow.md and creative-design-guide.md
-   - Use `- negative-prompt:` for exclusions instead of appending to the prompt.
-     Standard negative prompt: `text, words, letters, writing, characters, watermarks, logos`
-   - For `classic` layout: do NOT include composition directives —
-     the script automatically appends format-specific composition for each ad size
-   - For `floating-element`: do NOT include "on black background" —
-     the script auto-appends this (technical requirement for screen blend)
-   - For all other layouts: write prompts that make sense for the image role
-     (texture for stat-hero, self-contained scene for split, UI for product-frame)
-   - Focus prompts on: subject, mood, color, quality
-   - Use brand hex codes: deep purple #20124d, violet #8068ff, mint #8affbc
-   - Set `- fallback-models:` in config for resilience (e.g., `fal:flux-pro, fal:flux-schnell`)
-
-5. GENERATE + RENDER
+7. GENERATE + RENDER
    Option A — confident (one step):
      npx tsx scripts/ad.ts full campaign.md
 
@@ -178,7 +202,7 @@ If building from a messaging file:
      v1-square-1080x1080.png, v1-portrait-1080x1350.png, ...
      campaign.md (copy of brief)
 
-6. REVIEW (quality gate)
+8. REVIEW (quality gate — read Phase 4 files)
    Read each output image using vision. Check against creative-rubric.md:
 
    MUST PASS (any failure → iterate):
@@ -192,18 +216,21 @@ If building from a messaging file:
    □ B3: Headline uses Raleway font
    □ L1: Layout matches format spec
    □ L2: Logo recognizable
+   □ H1: Visual reinforces the headline concept (NEW)
 
    SHOULD PASS (fix if within retry budget):
    □ V1–V3: Brand colors, premium feel, visual hierarchy
    □ P1–P3: Platform safe zones
    □ C1–C3: Composition quality
 
-   For non-Flux models, also check the model-aware observations in `creative-rubric.md` (warm drift on Grok, over-detail on Nano Banana). If a model-specific issue persists after 2 attempts, switch model rather than iterating prompts.
+   For non-Flux models, also check the model-aware observations in
+   `creative-rubric.md` (warm drift on Grok, over-detail on Nano Banana).
+   If a model-specific issue persists after 2 attempts, switch model.
 
    Grade each ad: A (all pass), B (MUST pass, 1–2 SHOULD miss),
    C (MUST pass, 3+ SHOULD miss), F (MUST fails after retries)
 
-7. ITERATE (max 3 attempts per ad — use `--variant=N` for targeted fixes)
+9. ITERATE (max 3 attempts per ad — use `--variant=N` for targeted fixes)
 
    Choose the lightest fix that solves the problem:
 
@@ -212,20 +239,22 @@ If building from a messaging file:
    | Copy issue (B1, B2) | Edit campaign.md → re-run `render --variant=N` only |
    | Text unreadable (T1-T3) | Edit overlay to "dark" → re-run `render --variant=N` only |
    | Logo invisible (L2) | Swap logo path (light ↔ dark) → re-run `render --variant=N` only |
+   | Visual doesn't match headline (H1) | Rewrite prompt to serve the headline concept → re-run `generate --variant=N` |
    | Composition 90% right | Add `- strength: 0.4` + adjust prompt → re-run `refine --variant=N` |
    | AI text artifacts (A1) | New seed + add `- negative-prompt: text, words, letters, writing` → re-run `generate --variant=N` |
    | Bad composition | Simplify prompt → re-run `generate --variant=N` |
-   | Generic feel (V2) | Different prompt pattern → re-run `generate --variant=N` |
+   | Generic feel (V2) | Make prompt more specific to the campaign → re-run `generate --variant=N` |
    | Wrong layout (L1) | This is a script bug — report it |
 
-   After fix → return to step 6 (review again).
+   After fix → return to step 8 (review again).
    After 3 failed attempts on same ad → grade F, flag in report, continue.
 
-8. REPORT
+10. REPORT
    For each generated ad:
    - File path
    - Dimensions and format
    - Copy variant used (headline + CTA)
+   - Visual concept (what the prompt described)
    - Seed number
    - Quality grade (A/B/C/F)
    - Any issues or notes

@@ -63,9 +63,8 @@ Write a `.md` file with the campaign config and all copy variants. This is the s
 - text-effect: gradient
 - badge: Trusted by 40+ enterprises
 - negative-prompt: text, words, letters, writing, characters, watermarks, logos
-- prompt: Macro photography of cracked obsidian stone with veins
-  of luminous violet crystal. Deep purple #20124d base tones with
-  violet #8068ff accents. Hasselblad medium format, extreme detail.
+- prompt: [agent writes custom prompt using 5-Part Structure — SUBJECT
+  describing a visual that serves "$2.4M saved" → MOOD → COLOR → QUALITY]
 
 ## Variant 2
 - layout: classic
@@ -74,9 +73,8 @@ Write a `.md` file with the campaign config and all copy variants. This is the s
 - text-effect: outline
 - rotate: true
 - negative-prompt: text, words, letters, writing, characters, watermarks, logos
-- prompt: Aerial view of vast dark landscape where bioluminescent
-  streams converge into a single bright violet river. Cinematic drone,
-  deep purple #20124d terrain, mint #8affbc confluence point.
+- prompt: [agent writes custom prompt — SUBJECT showing a visual that
+  serves "platforms optimize for themselves" → MOOD → COLOR → QUALITY]
 ```
 
 ### Config Fields
@@ -187,45 +185,17 @@ npx tsx scripts/ad.ts generate campaign.md --explore
 
 Uses `explore-model` from config instead of `final-model`.
 
-### Prompt Patterns (Improvado Agent brand)
+### Prompt Writing
 
-Write prompts describing **concrete, photographable subjects** — not abstract vague concepts. Every prompt should reference a real material, environment, or physical object. Include a camera/quality reference. Do NOT include composition/position directives — the script adds those automatically.
+Write every prompt from scratch — no templates. The visual must serve the specific headline and campaign intent.
 
-**Geological texture** (stat-hero, bold-type):
-```
-- prompt: Macro photography of cracked obsidian stone with veins of luminous
-  violet crystal running through deep fractures. One vein glows bright mint
-  #8affbc. Deep purple #20124d base tones. Shot on Hasselblad medium format,
-  extreme detail, shallow depth of field, studio rim lighting.
-- negative-prompt: text, words, letters, numbers, logos, watermarks
-```
+1. **Answer the 5 Decision Questions** from `creative-design-guide.md` Section 9 (concept, product UI, mood, density, focal subject)
+2. **Assemble using the 5-Part Structure**: SUBJECT → MOOD → COLOR → QUALITY → EXCLUSION
+3. **Default to showing the product** the headline describes. If headline says "revenue attribution," the visual shows attribution flows — not abstract streams.
+4. **Do NOT include composition directives** — the script auto-appends per format
+5. **Standard negative prompt**: `text, words, letters, numbers, logos, watermarks`
 
-**Crystal optics** (floating-element, split):
-```
-- prompt: Dramatic 3D crystal prism splitting white light into violet #8068ff
-  and mint #8affbc spectral streams. Translucent obsidian with sharp geometric
-  edges, caustic light patterns. Studio product photography, Hasselblad quality.
-- negative-prompt: text, words, letters, numbers, logos, watermarks
-```
-
-**Aerial convergence** (classic):
-```
-- prompt: Aerial view of vast dark landscape where hundreds of bioluminescent
-  streams converge into a single bright violet river. Cinematic drone photography,
-  atmospheric fog, volumetric god rays. Deep purple #20124d terrain, mint
-  #8affbc confluence point. Shot on RED Komodo, filmic grain.
-- negative-prompt: text, words, letters, numbers, logos, watermarks
-```
-
-**Dark dashboard** (product-frame):
-```
-- prompt: Dark-themed analytics dashboard with glowing Sankey diagram showing
-  journey flows through funnel stages. Violet #8068ff streams on near-black
-  interface. Bloomberg Terminal meets Apple design. Crisp, enterprise-grade.
-- negative-prompt: text, words, letters, numbers, logos, watermarks, readable labels
-```
-
-See `creative-design-guide.md` Section 9 for the full template library with all 6 visual styles and detailed prompt engineering guidance.
+See `creative-design-guide.md` Section 9 (Prompt Architecture) for the full framework, decision questions, and worked examples.
 
 ### Campaign Consistency
 
@@ -428,14 +398,14 @@ Use per-variant model override (`- model: fal:grok-imagine`) to mix models in on
 
 Prompts must describe **concrete, photographable subjects** — not abstract vague concepts. Every prompt should have a specific material, environment, or physical object that a camera could capture.
 
-**DO use — concrete and cinematic:**
-- Geological textures: cracked obsidian, crystalline minerals, dark marble with light veins
-- Optical physics: crystal prisms refracting light, caustic patterns, spectral splits
-- Aerial landscapes: bioluminescent river systems, night terrain with glowing paths
-- Dark environments: command centers, concert halls, architectural interiors
-- Data visualizations: Sankey diagrams, network graphs, funnel flows (for product-frame)
-- Camera references: "Hasselblad medium format", "shot on RED Komodo", "cinematic drone"
-- Deep purple #20124d / violet #8068ff / mint #8affbc color palette in every prompt
+**DO use — visuals that serve the headline:**
+- Show the product feature the headline describes (dashboard, chart, agent workspace, data flow)
+- Dark UI interfaces with violet #8068ff chart accents and mint #8affbc metric highlights
+- Sankey diagrams, bar charts, funnel flows, network graphs — the specific chart that tells the headline's story
+- Premium environments when the concept is authority (command centers, executive offices)
+- Textures only for stat-hero (35% blend) or bold-type (5% overlay): geological macro, crystalline minerals
+- Deep purple #20124d / violet #8068ff / mint #8affbc in every prompt
+- The visual should reinforce what the headline says — if headline says "revenue attribution," show attribution flows
 
 **DO NOT use — generic and empty:**
 - "Abstract data visualization" (produces nothing)
