@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html><head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@1,400;1,500&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1080px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; }
+
+  .ad {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #20124d;
+    display: grid;
+    grid-template-rows: 58% 42%;
+  }
+
+  /* Visual zone — the geode is the star */
+  .visual-zone {
+    position: relative;
+    overflow: hidden;
+    background: #1a0e3a;
+  }
+  .visual-zone img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Soft blend at seam — just 60px, not content-destroying */
+  .visual-zone::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to top, #20124d, transparent);
+  }
+
+  /* Text zone — solid brand, clean typographic hierarchy */
+  .text-zone {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 64px 52px;
+    gap: 16px;
+  }
+
+  .eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #8affbc;
+  }
+
+  .headline {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 800;
+    font-size: 54px;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: #FFFFFF;
+  }
+  .headline em {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 58px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .body-text {
+    font-size: 19px;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.5);
+    max-width: 520px;
+  }
+
+  .cta-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 4px;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    background: #8068ff;
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 17px;
+    padding: 14px 36px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(128,104,255,0.35);
+  }
+
+  .url {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.03em;
+  }
+
+  /* Logo — top-left over the dark studio background */
+  .logo {
+    position: absolute;
+    top: 44px;
+    left: 52px;
+    height: 44px;
+    z-index: 10;
+  }
+
+  /* Thin accent line at very bottom */
+  .accent-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, #8068ff 0%, #8affbc 40%, transparent 70%);
+  }
+</style></head>
+<body>
+<div class="ad">
+  <div class="visual-zone">
+    <img src="../backgrounds/bg-v1-square.png" alt="">
+  </div>
+
+  <div class="text-zone">
+    <div class="eyebrow">Open Claw for Business</div>
+    <div class="headline">Your business AI is still <em>autocomplete.</em></div>
+    <div class="body-text">500+ sources. One knowledge graph. One AI that reasons across your entire business.</div>
+    <div class="cta-row">
+      <div class="cta-btn">Meet the full-context agent</div>
+      <div class="url">improvado.ai</div>
+    </div>
+  </div>
+
+  <img class="logo" src="../../../../knowledge/assets/logos/Logo-light.svg" alt="Logo">
+  <div class="accent-line"></div>
+</div>
+</body></html>

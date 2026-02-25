@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700;800&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px;
+    height: 1080px;
+    overflow: hidden;
+    position: relative;
+    background: #20124d;
+  }
+  .bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Bottom zone: solid purple strip for text */
+  .text-zone {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 340px;
+    z-index: 2;
+    background: linear-gradient(to top, #20124d 60%, #20124dcc 80%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0 64px 56px;
+  }
+  .headline {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 800;
+    font-size: 64px;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+  .headline em {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    color: #8affbc;
+  }
+  .body-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.4;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 28px;
+  }
+  .cta-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    padding: 0 32px;
+    background: #8068ff;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    border-radius: 10px;
+    letter-spacing: 0.01em;
+  }
+  .logo {
+    position: absolute;
+    top: 40px;
+    left: 48px;
+    z-index: 3;
+    height: 32px;
+    opacity: 0.95;
+  }
+</style>
+</head>
+<body>
+  <div class="bg">
+    <img src="../backgrounds/bg-v1-square.png" alt="">
+  </div>
+  <img class="logo" src="../../../../knowledge/assets/logos/Logo-light.svg" alt="Improvado">
+  <div class="text-zone">
+    <div class="headline">500+ Sources.<br><em>One Agent.</em></div>
+    <div class="body-text">All your business data. One knowledge graph. One AI that acts.</div>
+    <div class="cta-row">
+      <div class="cta">Book a demo</div>
+    </div>
+  </div>
+</body>
+</html>

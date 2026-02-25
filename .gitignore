@@ -1,0 +1,14 @@
+# Environment secrets
+.env
+.env.*
+
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+
+# Output artifacts (generated, not committed)
+output/creatives/*/backgrounds/
+output/creatives/*/cache.json
+output/creatives/*/*.png

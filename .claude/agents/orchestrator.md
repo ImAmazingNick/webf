@@ -36,11 +36,9 @@ Before invoking the evaluator, load these knowledge files into your context:
 5. **Section spec**: The relevant section guide from `knowledge/sections/{section}.md`
 
 ### Creative mode
-1. **Creative rubric**: `knowledge/creatives/creative-rubric.md` — 22 ad-specific checks (text readability, AI artifacts, brand compliance, layout, visual quality, platform fit, composition)
-2. **Creative workflow**: `knowledge/creatives/creative-workflow.md` — pipeline steps, prompt patterns, layout templates
-3. **Creative design guide**: `knowledge/creatives/creative-design-guide.md` — visual composition, prompt engineering
-4. **Brand system**: `knowledge/branding/improvado-agent.md` — colors, typography, banned words
-5. **Platform specs**: `knowledge/creatives/platform-specs.md` — ad sizes, safe zones
+1. **Creative ops (QA checklist)**: `knowledge/creatives/creative-ops.md` — pipeline, layouts, QA checklist (MUST PASS + SHOULD PASS checks)
+2. **Prompt craft**: `knowledge/creatives/prompt-craft.md` — prompt debugging table, anti-pattern visuals
+3. **Brand system**: `knowledge/branding/improvado-agent.md` — colors, typography, banned words
 
 **Creative mode inputs:**
 - `target` = campaign name (e.g., `revenue-attribution-launch`)

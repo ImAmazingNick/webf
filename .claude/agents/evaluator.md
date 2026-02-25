@@ -46,7 +46,7 @@ Tools available (read-only):
 - `Grep` → scan campaign.md for banned words, verify word counts
 - `Bash` (readonly) → `ls`, `wc`, file existence checks
 
-**Applicable checks (from `knowledge/creatives/creative-rubric.md`):**
+**Applicable checks (from QA checklist in `knowledge/creatives/creative-ops.md`):**
 - **Text Readability** (3 checks): T1 (headline readable), T2 (CTA legible), T3 (no text bleeding into busy bg)
 - **AI Artifacts** (2 checks): A1 (no text/letters in generated background), A2 (no visual distortions)
 - **Brand Compliance** (3 checks): B1 (no banned words), B2 (no exclamation marks), B3 (headline uses Raleway)

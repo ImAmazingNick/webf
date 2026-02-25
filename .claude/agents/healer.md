@@ -178,7 +178,7 @@ Within a severity level, fix in the order listed in the report (issue ID order).
 | Logo invisible (L2) | Wrong logo variant | `Edit` campaign.md → swap logo path (light ↔ dark) → `Bash` re-render with `--variant=N` |
 | Blend mode broken (L3) | Wrong prompt for layout | `Edit` campaign.md → for floating-element: ensure "on pure black background" in prompt; for stat-hero: use atmospheric texture not scene → `Bash` re-generate with `--variant=N` |
 | Missing brand colors (V1) | Prompt lacks color refs | `Edit` campaign.md → add hex codes (#20124d, #8068ff, #8affbc) to prompt → `Bash` re-generate with `--variant=N` |
-| Generic feel (V2) | Prompt too generic | `Edit` campaign.md → use different prompt pattern from creative-design-guide.md → `Bash` re-generate with `--variant=N` |
+| Generic feel (V2) | Prompt too generic | `Edit` campaign.md → apply craft principles from prompt-craft.md (name materials, not concepts) → `Bash` re-generate with `--variant=N` |
 | Composition 90% right | Minor refinement needed | `Edit` campaign.md → add `- ref-image:` pointing to current background + `- strength: 0.4` + adjust prompt → `Bash` `npx tsx scripts/ad.ts refine campaign.md --variant=N` |
 | Platform safe zone (P1-P3) | Content in wrong zone | `Edit` campaign.md → add "leave clear space in [zone]" to prompt → `Bash` re-generate with `--variant=N` |
 | Missing negative-prompt | No exclusion field | `Edit` campaign.md → add `- negative-prompt: text, words, letters, writing, characters, watermarks, logos` to variant → `Bash` re-generate with `--variant=N` |

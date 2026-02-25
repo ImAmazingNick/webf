@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@700;800&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1080px;
+    height: 1080px;
+    overflow: hidden;
+    position: relative;
+    background: #20124d;
+  }
+  .bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Top text strip — headline above the terminal visual */
+  .text-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 280px;
+    z-index: 2;
+    background: linear-gradient(to bottom, #20124d 50%, #20124dcc 70%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 56px 64px 0;
+  }
+  .headline {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 800;
+    font-size: 62px;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+  .headline em {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    color: #8affbc;
+  }
+  .body-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 1.4;
+    color: rgba(255,255,255,0.65);
+    max-width: 640px;
+  }
+  /* Bottom CTA bar */
+  .cta-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    z-index: 2;
+    background: linear-gradient(to top, #20124d 40%, transparent 100%);
+    display: flex;
+    align-items: flex-end;
+    padding: 0 64px 44px;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 52px;
+    padding: 0 32px;
+    background: #8068ff;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    border-radius: 10px;
+    letter-spacing: 0.01em;
+  }
+</style>
+</head>
+<body>
+  <div class="bg">
+    <img src="../backgrounds/bg-v3-square.png" alt="">
+  </div>
+  <div class="text-top">
+    <div class="headline">Full Context.<br><em>One Prompt.</em></div>
+    <div class="body-text">The AI agent reasons across marketing, sales, support, product, and finance.</div>
+  </div>
+  <div class="cta-bar">
+    <div class="cta">Book a demo</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html><head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@1,400;1,500&family=Raleway:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1080px; height: 1080px; overflow: hidden; font-family: 'Inter', sans-serif; }
+
+  .ad {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #20124d;
+    display: grid;
+    grid-template-rows: 55% 45%;
+  }
+
+  /* Visual zone — image is the HERO, fully visible, no overlay */
+  .visual-zone {
+    position: relative;
+    overflow: hidden;
+  }
+  .visual-zone img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* Soft blend into text zone — not a content-destroying overlay */
+  .visual-zone::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to top, #20124d, transparent);
+  }
+
+  /* Text zone — solid brand color, clean typography */
+  .text-zone {
+    background: #20124d;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 48px 64px;
+    gap: 12px;
+  }
+
+  .stat {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 800;
+    font-size: 120px;
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #FFFFFF 10%, #8068ff 50%, #8affbc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .headline {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 700;
+    font-size: 42px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: rgba(255,255,255,0.92);
+  }
+  .headline .accent {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 45px;
+  }
+
+  .body-text {
+    font-size: 20px;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.65);
+    max-width: 500px;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    background: #8068ff;
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 18px;
+    padding: 14px 36px;
+    border-radius: 12px;
+    margin-top: 8px;
+    width: fit-content;
+    box-shadow: 0 4px 14px rgba(128,104,255,0.35);
+  }
+
+  /* Logo — top-left, overlaid on image */
+  .logo {
+    position: absolute;
+    top: 48px;
+    left: 48px;
+    height: 48px;
+    z-index: 10;
+  }
+
+  .badge {
+    position: absolute;
+    bottom: 20px;
+    right: 48px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.02em;
+  }
+</style></head>
+<body>
+<div class="ad">
+  <div class="visual-zone">
+    <img src="../backgrounds/bg-v1-square.png" alt="">
+  </div>
+  <div class="text-zone">
+    <div class="stat">$2.4M</div>
+    <div class="headline">$2.4M saved <span class="accent">in year one</span></div>
+    <div class="body-text">Full-context AI. Not another dashboard.</div>
+    <div class="cta-btn">See how it works</div>
+  </div>
+  <img class="logo" src="../../../../knowledge/assets/logos/Logo-light.svg" alt="Logo">
+  <div class="badge">Trusted by 40+ enterprises</div>
+</div>
+</body></html>

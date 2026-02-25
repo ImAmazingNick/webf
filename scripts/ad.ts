@@ -29,14 +29,22 @@
  *   floating-element — AI element on black, screen-blended over brand gradient
  *
  * Models (set via explore-model / final-model in campaign.md):
+ *
+ *   fal.ai models (require FAL_KEY):
  *   fal:flux-schnell      — Flux 1 Schnell ($0.003, ~1s)  — prompt iteration
  *   fal:flux-pro          — Flux 1 Pro ($0.05, ~5s)       — production renders
  *   fal:flux-2-pro        — Flux 2 Pro (~$0.05, ~5s)      — latest Flux quality
- *   fal:grok-imagine      — Grok Imagine (varies, ~10s)   — photorealism
+ *   fal:grok-imagine      — Grok Imagine via fal.ai proxy  — photorealism
  *   fal:nano-banana       — Nano Banana (~$0.05, ~3s)     — Google Gemini Flash
  *   fal:nano-banana-pro   — Nano Banana Pro ($0.15, ~8s)  — best text rendering
  *
- * Env: FAL_KEY (fal.ai API key — all models run through fal.ai)
+ *   xAI native models (require XAI_KEY — direct xAI API, no fal.ai):
+ *   xai:grok-imagine      — Grok Imagine direct ($0.07)   — photorealism, named logos
+ *   xai:grok-imagine-pro  — Grok Imagine Pro ($0.14)      — highest quality
+ *
+ * Env:
+ *   FAL_KEY  — fal.ai API key (for fal: prefixed models)
+ *   XAI_KEY  — xAI API key (for xai: prefixed models, from console.x.ai)
  */
 
 import { chromium } from "playwright";
@@ -44,6 +52,21 @@ import type { Browser } from "playwright";
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from "node:fs";
 import { dirname, resolve, extname, join } from "node:path";
 import { createHash } from "node:crypto";
+
+// ─── Auto-load .env (zero dependencies) ─────────────────────────────────────
+(function loadEnv() {
+  const envPath = resolve(import.meta.dirname || __dirname, "..", ".env");
+  if (!existsSync(envPath)) return;
+  for (const line of readFileSync(envPath, "utf-8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eqIdx = trimmed.indexOf("=");
+    if (eqIdx < 1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    const val = trimmed.slice(eqIdx + 1).trim();
+    if (!process.env[key]) process.env[key] = val;
+  }
+})();
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -58,6 +81,8 @@ interface CampaignConfig {
   fallbackModels: string[];
   maxRetries: number;
   output: string;
+  formats: string[]; // which ad sizes to generate (e.g. ["square","landscape"]). Empty = all.
+  brandStyleSuffix: string; // campaign-level style consistency phrase appended to all prompts
 }
 
 interface Variant {
@@ -76,6 +101,7 @@ interface Variant {
   negativePrompt: string; // what to avoid in generation (passed to fal.ai negative_prompt)
   refImage: string; // reference image path for img2img refinement
   strength: number; // img2img strength 0.0-1.0 (lower = more faithful to reference)
+  formats: string[]; // per-variant format override (e.g. ["square","story"]). Empty = use config.formats.
 }
 
 interface Campaign {
@@ -115,42 +141,10 @@ interface GenerateResult {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const AD_SIZES = [
-  {
-    name: "square",
-    width: 1080,
-    height: 1080,
-    logoPosition: "top-left",
-    textPosition: "bottom-left",
-    compositionDirective:
-      "Composition weighted toward upper-right quadrant, expansive dark negative space in the lower-left for text overlay.",
-  },
-  {
-    name: "portrait",
-    width: 1080,
-    height: 1350,
-    logoPosition: "top-left",
-    textPosition: "bottom",
-    compositionDirective:
-      "Vertical composition with visual elements concentrated in the upper half, wide clear dark zone across the entire bottom third for text overlay.",
-  },
-  {
-    name: "landscape",
-    width: 1200,
-    height: 628,
-    logoPosition: "top-left",
-    textPosition: "left",
-    compositionDirective:
-      "Horizontal composition with all visual detail and interest on the right side, the entire left half is open dark space for text overlay.",
-  },
-  {
-    name: "story",
-    width: 1080,
-    height: 1920,
-    logoPosition: "top-center",
-    textPosition: "center",
-    compositionDirective:
-      "Tall vertical composition with visual elements in the upper quarter, vast expansive dark space through the center and lower portions for text overlay.",
-  },
+  { name: "square", width: 1080, height: 1080, logoPosition: "top-left", textPosition: "bottom-left" },
+  { name: "portrait", width: 1080, height: 1350, logoPosition: "top-left", textPosition: "bottom" },
+  { name: "landscape", width: 1200, height: 628, logoPosition: "top-left", textPosition: "left" },
+  { name: "story", width: 1080, height: 1920, logoPosition: "top-center", textPosition: "center" },
 ] as const;
 
 const VALID_LAYOUTS = [
@@ -162,8 +156,17 @@ const VALID_LAYOUTS = [
   "floating-element",
 ];
 
-// Short alias → fal.ai model ID
-const MODEL_MAP: Record<string, string> = {
+const VALID_FORMAT_NAMES = AD_SIZES.map((s) => s.name);
+
+/** Resolve which sizes to generate for a variant. Variant formats override config formats. Empty = all. */
+function getSizesForVariant(variant: Variant, config: CampaignConfig): typeof AD_SIZES[number][] {
+  const names = variant.formats.length > 0 ? variant.formats : config.formats;
+  if (names.length === 0) return [...AD_SIZES];
+  return AD_SIZES.filter((s) => names.includes(s.name));
+}
+
+// Short alias → fal.ai model ID (for fal: prefixed models)
+const FAL_MODEL_MAP: Record<string, string> = {
   "flux-schnell": "fal-ai/flux/schnell",
   "flux-pro": "fal-ai/flux-pro",
   "flux-dev": "fal-ai/flux/dev",
@@ -172,6 +175,12 @@ const MODEL_MAP: Record<string, string> = {
   "grok-imagine": "xai/grok-imagine-image",
   "nano-banana": "fal-ai/nano-banana",
   "nano-banana-pro": "fal-ai/nano-banana-pro",
+};
+
+// Short alias → xAI native model ID (for xai: prefixed models)
+const XAI_MODEL_MAP: Record<string, string> = {
+  "grok-imagine": "grok-imagine-image",
+  "grok-imagine-pro": "grok-imagine-image-pro",
 };
 
 // ─── Model Capabilities Registry ────────────────────────────────────────────
@@ -194,6 +203,12 @@ const MODEL_CAPS: Record<string, ModelCapabilities> = {
   "flux-2-dev":      { sizeMode: "image_size", supportsSeed: true },
   "grok-imagine": {
     sizeMode: "aspect_ratio", supportsSeed: false,
+    supportsResolution: true, defaultResolution: "2k",
+    aspectRatios: ["2:1", "20:9", "19.5:9", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16", "9:19.5", "9:20", "1:2"],
+  },
+  "grok-imagine-pro": {
+    sizeMode: "aspect_ratio", supportsSeed: false,
+    supportsResolution: true, defaultResolution: "2k",
     aspectRatios: ["2:1", "20:9", "19.5:9", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16", "9:19.5", "9:20", "1:2"],
   },
   "nano-banana": {
@@ -225,9 +240,17 @@ function dimensionsToAspectRatio(w: number, h: number, validRatios: string[]): s
   return bestRatio;
 }
 
-/** Resolve short model alias (strip fal: prefix). */
+/** Resolve short model alias (strip fal: or xai: prefix). Returns the short name. */
 function resolveModelAlias(modelSpec: string): string {
-  return modelSpec.startsWith("fal:") ? modelSpec.slice(4) : modelSpec;
+  if (modelSpec.startsWith("fal:")) return modelSpec.slice(4);
+  if (modelSpec.startsWith("xai:")) return modelSpec.slice(4);
+  return modelSpec;
+}
+
+/** Determine which provider to use based on model prefix. */
+function getProviderForModel(modelSpec: string): "fal" | "xai" {
+  if (modelSpec.startsWith("xai:")) return "xai";
+  return "fal";
 }
 
 /** Get capabilities for a model, defaulting to Flux behavior. */
@@ -291,6 +314,11 @@ function transformForGrok(prompt: string): string {
   // Add photorealism suffix if not already present
   if (!/photorealistic|photo-realistic|ultra.*realistic/i.test(p)) {
     p += " Photorealistic rendering, ultra high quality.";
+  }
+  // Ensure cold color temperature hint if purple/violet colors are described
+  // (Grok tends to drift warm without explicit temperature guidance)
+  if (/purple|violet/i.test(p) && !/cold color|cool tone|cool color/i.test(p)) {
+    p += " Cold color temperature.";
   }
   return p;
 }
@@ -401,7 +429,7 @@ class FalProvider implements Provider {
 
     const model = resolveModelAlias(modelSpec);
     const caps = getModelCaps(model);
-    const resolvedModel = MODEL_MAP[model] || model;
+    const resolvedModel = FAL_MODEL_MAP[model] || model;
     const { fal } = await import("@fal-ai/client");
 
     // Preprocess prompt for model-specific optimizations
@@ -443,7 +471,90 @@ class FalProvider implements Provider {
   }
 }
 
-const provider: Provider = new FalProvider();
+// ─── Provider (xAI Native — Grok Imagine direct API) ────────────────────────
+
+class XaiProvider implements Provider {
+  name = "xai";
+
+  async generate(
+    prompt: string,
+    width: number,
+    height: number,
+    seed: number,
+    modelSpec: string,
+    options?: { negativePrompt?: string; referenceImage?: string; strength?: number }
+  ): Promise<GenerateResult> {
+    const apiKey = process.env.XAI_KEY;
+    if (!apiKey)
+      throw new Error("XAI_KEY not set. Get your key at https://console.x.ai");
+
+    const model = resolveModelAlias(modelSpec);
+    const caps = getModelCaps(model);
+    const resolvedModel = XAI_MODEL_MAP[model] || model;
+
+    // Preprocess prompt (same transforms: hex→names, cold temperature, etc.)
+    const processedPrompt = preprocessPrompt(prompt, model, options);
+
+    // Build xAI request body
+    const body: Record<string, unknown> = {
+      model: resolvedModel,
+      prompt: processedPrompt,
+      n: 1,
+    };
+
+    // Aspect ratio
+    if (caps.aspectRatios) {
+      body.aspect_ratio = dimensionsToAspectRatio(width, height, caps.aspectRatios);
+    }
+
+    // Resolution (xAI supports "1k" or "2k")
+    if (caps.supportsResolution) {
+      body.resolution = caps.defaultResolution || "2k";
+    }
+
+    // img2img: xAI supports image_url for editing
+    if (options?.referenceImage) {
+      body.image_url = options.referenceImage;
+    }
+
+    const response = await fetch("https://api.x.ai/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      let errMsg: string;
+      try {
+        const parsed = JSON.parse(errBody);
+        errMsg = parsed.error || parsed.message || errBody;
+      } catch {
+        errMsg = errBody;
+      }
+      throw new Error(`xAI API error (${response.status}): ${errMsg}`);
+    }
+
+    const result = await response.json() as { data?: Array<{ url: string; revised_prompt?: string }> };
+    if (!result.data?.length)
+      throw new Error(`No images returned from xAI (model: ${resolvedModel})`);
+
+    return { url: result.data[0].url, seed };
+  }
+}
+
+// ─── Provider Registry ──────────────────────────────────────────────────────
+
+const falProvider: Provider = new FalProvider();
+const xaiProvider: Provider = new XaiProvider();
+
+/** Select the correct provider based on model prefix. */
+function getProvider(modelSpec: string): Provider {
+  return getProviderForModel(modelSpec) === "xai" ? xaiProvider : falProvider;
+}
 
 /** Generate an image with retries. Tries primary model, then fallback models. */
 async function generateImage(
@@ -461,9 +572,10 @@ async function generateImage(
 
   for (let mi = 0; mi < models.length; mi++) {
     const currentModel = models[mi];
+    const currentProvider = getProvider(currentModel);
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        return await provider.generate(prompt, width, height, seed, currentModel, options);
+        return await currentProvider.generate(prompt, width, height, seed, currentModel, options);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         if (attempt < maxRetries) {
@@ -568,6 +680,10 @@ function parseCampaignMd(filePath: string): Campaign {
         : [],
       maxRetries: configRaw.maxRetries ? parseInt(configRaw.maxRetries, 10) : 3,
       output: configRaw.output || `output/creatives/${campaignName}`,
+      formats: configRaw.formats
+        ? configRaw.formats.split(",").map((f: string) => f.trim()).filter((f: string) => VALID_FORMAT_NAMES.includes(f))
+        : [],
+      brandStyleSuffix: configRaw.brandStyleSuffix || "",
     },
     variants: variants.map((v, i) => ({
       headline: v.headline || `Variant ${i + 1}`,
@@ -585,6 +701,9 @@ function parseCampaignMd(filePath: string): Campaign {
       negativePrompt: v.negativePrompt || "",
       refImage: v.refImage || "",
       strength: v.strength ? parseFloat(v.strength) : 0.5,
+      formats: v.formats
+        ? v.formats.split(",").map((f: string) => f.trim()).filter((f: string) => VALID_FORMAT_NAMES.includes(f))
+        : [],
     })),
   };
 }
@@ -1477,6 +1596,7 @@ function buildHtml(config: AdConfig): string {
 
 // ─── Playwright Renderer ────────────────────────────────────────────────────
 
+/** Render from an AdConfig using a built-in layout template (legacy path). */
 async function renderAd(browser: Browser, config: AdConfig): Promise<void> {
   const outputPath = resolve(config.output);
   mkdirSync(dirname(outputPath), { recursive: true });
@@ -1510,6 +1630,46 @@ async function renderAd(browser: Browser, config: AdConfig): Promise<void> {
   const ph = config.height * 2;
   console.error(
     `Rendered: ${outputPath} (${config.width}x${config.height} @2x → ${px}x${ph})`
+  );
+}
+
+/** Render from an agent-generated HTML file. The agent controls the entire composition. */
+async function renderFromFile(
+  browser: Browser,
+  htmlPath: string,
+  width: number,
+  height: number,
+  outputPath: string,
+): Promise<void> {
+  mkdirSync(dirname(resolve(outputPath)), { recursive: true });
+
+  const context = await browser.newContext({
+    viewport: { width, height },
+    deviceScaleFactor: 2,
+  });
+  const page = await context.newPage();
+
+  // Use file:// so relative paths (backgrounds, logos) resolve correctly
+  await page.goto(`file://${resolve(htmlPath)}`, { waitUntil: "domcontentloaded" });
+
+  // Wait for fonts
+  await page.evaluate(() => document.fonts.ready).catch(() => {});
+  await page
+    .waitForFunction(
+      () =>
+        document.fonts.check("700 48px Raleway") &&
+        document.fonts.check("400 16px Inter"),
+      { timeout: 8000 }
+    )
+    .catch(() =>
+      console.warn("Font load check timed out — rendering with available fonts")
+    );
+
+  await page.screenshot({ path: resolve(outputPath), type: "png" });
+  await context.close();
+
+  console.error(
+    `Rendered (agent HTML): ${outputPath} (${width}x${height} @2x → ${width * 2}x${height * 2})`
   );
 }
 
@@ -1562,7 +1722,7 @@ async function cmdGenerate(
         console.error(`Variant ${vi + 1}: bg-file not found: ${srcPath} — skipping.`);
         continue;
       }
-      for (const size of AD_SIZES) {
+      for (const size of getSizesForVariant(variant, campaign.config)) {
         const bgFile = `bg-v${vi + 1}-${size.name}.png`;
         const bgPath = join(bgDir, bgFile);
         const key = `v${vi + 1}-${size.name}`;
@@ -1585,18 +1745,16 @@ async function cmdGenerate(
       ? (variant.model || campaign.config.exploreModel)
       : (variant.model || campaign.config.finalModel);
 
-    for (const size of AD_SIZES) {
+    for (const size of getSizesForVariant(variant, campaign.config)) {
       const bgFile = `bg-v${vi + 1}-${size.name}.png`;
       const bgPath = join(bgDir, bgFile);
       const key = `v${vi + 1}-${size.name}`;
 
-      // Build final prompt based on layout
-      let finalPrompt = variant.prompt;
-      if (variant.layout === "classic") {
-        finalPrompt = `${variant.prompt} ${size.compositionDirective}`;
-      } else if (variant.layout === "floating-element") {
-        finalPrompt = `${variant.prompt} On pure solid black background.`;
-      }
+      // Agent controls the full prompt — brand style suffix is the only script-level addition
+      // (it ensures campaign consistency without the agent repeating it in every prompt)
+      const finalPrompt = campaign.config.brandStyleSuffix
+        ? `${variant.prompt} ${campaign.config.brandStyleSuffix}`
+        : variant.prompt;
 
       // Check cache before adding to task list
       const ck = cacheKey(finalPrompt, variantModel, campaign.config.seed, size.width, size.height);
@@ -1674,23 +1832,48 @@ async function cmdRender(
   opts: { variantFilter?: number; concurrency?: number }
 ): Promise<void> {
   const bgDir = join(campaign.config.output, "backgrounds");
+  const htmlDir = join(campaign.config.output, "html");
   const concurrency = opts.concurrency ?? 6;
   const browser = await chromium.launch();
 
   const ads: Array<{ variant: number; format: string; path: string }> = [];
 
-  // Build render tasks
-  const renderTasks: Array<{ adConfig: AdConfig; vi: number; sizeName: string }> = [];
+  // Build render tasks — agent HTML takes priority over built-in templates
+  interface RenderTask {
+    vi: number;
+    sizeName: string;
+    width: number;
+    height: number;
+    outputPath: string;
+    agentHtml?: string; // path to agent-generated HTML (if exists)
+    adConfig?: AdConfig; // template config (fallback if no agent HTML)
+  }
+  const renderTasks: RenderTask[] = [];
 
   for (let vi = 0; vi < campaign.variants.length; vi++) {
     if (opts.variantFilter !== undefined && vi !== opts.variantFilter) continue;
 
     const variant = campaign.variants[vi];
-    for (const size of AD_SIZES) {
+    for (const size of getSizesForVariant(variant, campaign.config)) {
       const bgPath = join(bgDir, `bg-v${vi + 1}-${size.name}.png`);
       const outputFile = `v${vi + 1}-${size.name}-${size.width}x${size.height}.png`;
       const outputPath = join(campaign.config.output, outputFile);
 
+      // Check for agent-generated HTML first
+      const agentHtmlPath = join(htmlDir, `v${vi + 1}-${size.name}.html`);
+      if (existsSync(agentHtmlPath)) {
+        renderTasks.push({
+          vi,
+          sizeName: size.name,
+          width: size.width,
+          height: size.height,
+          outputPath,
+          agentHtml: agentHtmlPath,
+        });
+        continue;
+      }
+
+      // Fall back to template-based rendering
       const bgExists = existsSync(bgPath);
       if (!bgExists && variant.layout !== "bold-type") {
         console.warn(`Background not found: ${bgPath} — skipping`);
@@ -1700,6 +1883,9 @@ async function cmdRender(
       renderTasks.push({
         vi,
         sizeName: size.name,
+        width: size.width,
+        height: size.height,
+        outputPath,
         adConfig: {
           bg: bgExists ? bgPath : "",
           headline: variant.headline,
@@ -1731,7 +1917,11 @@ async function cmdRender(
     console.error(`Rendering ${renderTasks.length} ads (concurrency: ${concurrency})...`);
     const results = await parallelLimit(
       renderTasks.map((task) => async () => {
-        await renderAd(browser, task.adConfig);
+        if (task.agentHtml) {
+          await renderFromFile(browser, task.agentHtml, task.width, task.height, task.outputPath);
+        } else if (task.adConfig) {
+          await renderAd(browser, task.adConfig);
+        }
         return task;
       }),
       concurrency
@@ -1740,7 +1930,7 @@ async function cmdRender(
     for (const settled of results) {
       if (settled.status === "fulfilled") {
         const task = settled.value;
-        ads.push({ variant: task.vi + 1, format: task.sizeName, path: task.adConfig.output });
+        ads.push({ variant: task.vi + 1, format: task.sizeName, path: task.outputPath });
       } else {
         const task = renderTasks[results.indexOf(settled)];
         const msg = settled.reason instanceof Error ? settled.reason.message : String(settled.reason);
@@ -1811,7 +2001,7 @@ async function cmdRefine(
 
     const variantModel = variant.model || campaign.config.finalModel;
 
-    for (const size of AD_SIZES) {
+    for (const size of getSizesForVariant(variant, campaign.config)) {
       const bgFile = `bg-v${vi + 1}-${size.name}.png`;
       const bgPath = join(bgDir, bgFile);
       const key = `v${vi + 1}-${size.name}`;
@@ -1832,12 +2022,10 @@ async function cmdRefine(
         continue;
       }
 
-      let finalPrompt = variant.prompt;
-      if (variant.layout === "classic") {
-        finalPrompt = `${variant.prompt} ${size.compositionDirective}`;
-      } else if (variant.layout === "floating-element") {
-        finalPrompt = `${variant.prompt} On pure solid black background.`;
-      }
+      // Agent controls the full prompt — brand style suffix appended for consistency
+      const finalPrompt = campaign.config.brandStyleSuffix
+        ? `${variant.prompt} ${campaign.config.brandStyleSuffix}`
+        : variant.prompt;
 
       tasks.push({
         vi, size, prompt: finalPrompt, model: variantModel, bgPath, key,
