@@ -7,7 +7,7 @@
 - logo: knowledge/assets/logos/Logo-light.svg
 - final-model: xai:grok-imagine-pro
 - fallback-models: xai:grok-imagine
-- formats: square
+- formats: square, portrait, landscape, story
 - brand-style-suffix: Consistent brand style: deep dark purple near-black
   background, dramatic contrast between old and new, premium enterprise tech
   advertising, cold color temperature, cinematic split lighting, violet

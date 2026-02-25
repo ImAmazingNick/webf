@@ -212,7 +212,17 @@ npx tsx scripts/ad.ts generate campaign.md
 
 ## Phase 5: Composition + Render
 
-### Step 5.1 — Compose Agent HTML
+### Step 5.1 — Review Generated Backgrounds
+
+Before writing any HTML, read each generated `bg-vN-{format}.png` using vision. For each background, note:
+- Where did Grok place the headline text? (top-left, centered, wrapped to multiple lines?)
+- Where is the visual focal point and visual mass?
+- Where are the areas of visual "quiet" — dark gradients, empty space, clean surfaces?
+- Does the layout vary across formats for the same variant? (text often wraps differently in portrait vs. landscape)
+
+Use these observations to place the logo for visual balance — it should feel like part of the composition, counterbalancing other elements and sitting in natural quiet space. Check each format separately since the same variant can compose very differently across sizes.
+
+### Step 5.2 — Compose Agent HTML
 
 Write complete HTML for each variant/format. The visual IS the creative:
 - Feature the AI image prominently (50-70% of canvas)
@@ -220,13 +230,13 @@ Write complete HTML for each variant/format. The visual IS the creative:
 - Each variant uses a DIFFERENT layout structure
 - Brand fonts: Raleway 700/800 headlines, Inter 400/500/600 body
 
-### Step 5.2 — Render
+### Step 5.3 — Render
 
 ```bash
 npx tsx scripts/ad.ts render campaign.md
 ```
 
-### Step 5.3 — QA
+### Step 5.4 — QA
 
 Vision-check every output against the QA checklist in creative-ops.md.
 

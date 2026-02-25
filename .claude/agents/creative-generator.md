@@ -127,6 +127,8 @@ Or explore first: `generate --explore` → vision-check → `generate` (producti
 Save to: `{output}/html/v{N}-{format}.html`
 Example: `output/creatives/open-claw-business/html/v1-square.html`
 
+**Before writing HTML, read each generated background PNG.** The logo is a compositional element, not an afterthought — place it for visual balance. Look at where Grok placed text, where the visual mass is, and where the image has natural quiet space (dark gradients, empty areas, clean surfaces). The logo should counterbalance other elements and sit where it feels designed-in. Check each format separately — the same variant often composes very differently across sizes (text wraps more in portrait, landscape is wider). Write format-specific HTML with adjusted positions when needed.
+
 **You decide everything:**
 - How much canvas the visual occupies (50%? 65%? full-bleed?)
 - Whether to use overlays and how aggressive (prefer none or minimal)

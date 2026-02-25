@@ -90,6 +90,17 @@ Choose per-variant based on what gives the best result:
 
 **Built-in layout templates are still available** as fallback when no agent HTML exists. They remain useful for quick iteration — but for final-quality creatives, the agent should compose the HTML.
 
+### Logo Placement
+
+The logo is a compositional element — it should feel like part of the design, not something dropped on top. After generating backgrounds, vision-check each one and place the logo for visual balance:
+
+- **Balance the composition.** The logo adds visual weight. Place it where it counterbalances other elements — if the headline is top-center and the visual mass is lower-left, top-right logo creates a natural triangle the eye follows.
+- **Work with the image's natural space.** Every generated image has areas of visual "quiet" — dark gradients, empty sky, clean surfaces. The logo belongs in that quiet space, not fighting busy detail.
+- **Match the energy.** A dramatic full-bleed cinematic image wants a small, confident logo tucked into a corner. A clean split-screen wants the logo as a deliberate design element (e.g. paired symmetrically opposite a text label).
+- **Adapt per format.** The same variant often has different compositions across sizes — text wraps more in portrait, landscape is wider and shorter. Check each format and adjust logo position accordingly. Don't copy one position across all formats.
+- Minimum clear space: ~20px from edges, ~40px from any text
+- Minimum logo height: 44px on 1080px canvas, 36px on 628px-height canvas
+
 ---
 
 ## Campaign.md Format
