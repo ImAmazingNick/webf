@@ -16,7 +16,7 @@
   let inputEl: HTMLInputElement;
   let outputEl: HTMLDivElement;
 
-  const commands = ['/help', '/whoami', '/bio', '/projects', '/ideas', '/clear', '/date', '/echo [text]', '/neofetch', '/smoke', '/status', '/now', '/glitch', '/rain', '/density'];
+  const commands = ['claude', '/help', '/whoami', '/bio', '/projects', '/ideas', '/clear', '/date', '/echo [text]', '/neofetch', '/smoke', '/status', '/now', '/glitch', '/rain', '/density'];
 
   function print(html: string) {
     lines = [...lines, { html }];
@@ -109,7 +109,7 @@
 
 <svelte:window onkeydown={onWindowKeydown} />
 
-<section class="mb-20">
+<section class="mb-16">
   <div class="terminal">
     <div class="terminal-header">
       <div class="flex items-center justify-between">
@@ -127,8 +127,8 @@
         <div>{@html line.html}</div>
       {/each}
     </div>
-    <div class="relative px-5 py-3.5 bg-black border-t border-zinc-800 flex items-center">
-      <span class="prompt font-mono mr-2.5 select-none">$</span>
+    <div class="relative px-4 py-2.5 bg-black border-t border-zinc-800 flex items-center">
+      <span class="prompt font-mono mr-2 select-none">$</span>
       <input
         bind:this={inputEl}
         bind:value={inputValue}

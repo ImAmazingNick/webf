@@ -31,8 +31,7 @@
   }
 </script>
 
-<section id="traces" class="mb-20">
-  <h2 class="text-[27px] font-medium tracking-tight mb-8">Traces of code</h2>
+<section id="traces" class="mb-6">
   <div class="heatmap-grid" style="grid-template-columns: repeat({COLS}, 1fr); grid-template-rows: repeat({ROWS}, 1fr);">
     {#each levels as lvl, i}
       <div
@@ -41,7 +40,7 @@
         role="button"
         tabindex="-1"
         onclick={handleClick}
-      ></div>
+      >{#if i === todayIndex}<span class="heatmap-tooltip">Building private claw</span>{/if}</div>
     {/each}
   </div>
   <div class="flex justify-between text-[10px] font-mono text-zinc-500 mt-4">

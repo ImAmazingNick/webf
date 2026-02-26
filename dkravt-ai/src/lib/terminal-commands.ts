@@ -5,7 +5,7 @@ type CommandHandler = (args: string[]) => CommandOutput;
 
 const commands: Record<string, CommandHandler> = {
   '/help': () => [
-    'Available: /whoami /bio /projects /ideas /neofetch /smoke /status /now /glitch /rain /density /clear /date /echo [text]',
+    'Available: claude /whoami /bio /projects /ideas /neofetch /smoke /status /now /glitch /rain /density /clear /date /echo [text]',
   ],
 
   '/whoami': () => [
@@ -73,6 +73,20 @@ const commands: Record<string, CommandHandler> = {
     const d = Math.floor(58 + Math.random() * 18);
     return [`Current fog density: ${d}%`];
   },
+
+  'claude': () => [
+    '',
+    '<span class="text-orange-300">  ╭──────────────────────────────────────────╮</span>',
+    '<span class="text-orange-300">  │</span>  <span class="text-orange-400">✻</span>  <span class="text-white font-bold">Welcome to Claude Code!</span>              <span class="text-orange-300">│</span>',
+    '<span class="text-orange-300">  │</span>                                          <span class="text-orange-300">│</span>',
+    '<span class="text-orange-300">  │</span>     <span class="text-zinc-400">/help</span> <span class="text-zinc-500">for available commands</span>        <span class="text-orange-300">│</span>',
+    '<span class="text-orange-300">  │</span>     <span class="text-zinc-400">Model:</span> <span class="text-cyan-400">claude-opus-4-6</span>             <span class="text-orange-300">│</span>',
+    '<span class="text-orange-300">  ╰──────────────────────────────────────────╯</span>',
+    '',
+    '<span class="text-zinc-500">  cwd:</span> <span class="text-zinc-300">~/daniel/sf-fog</span>',
+    '<span class="text-zinc-500">  ❯</span> <span class="text-emerald-400">Ready to assist.</span> <span class="text-zinc-600">What would you like to build?</span>',
+    '',
+  ],
 };
 
 // Special return type hack for mode commands

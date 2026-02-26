@@ -41,7 +41,7 @@ export const COMMIT_MESSAGES = [
 export const SITE = {
   name: 'Daniel Kravtsov',
   title: 'DANIEL KRAVTSOV',
-  tagline: 'systems that learn to see — building AI where marketing data dissolves into intelligence',
+  tagline: 'Building startups, raising kids, exploring AI, thinking about philosophy, and trying to understand humans.',
   role: 'CEO & Co-Founder, Improvado',
   location: 'San Francisco',
   url: 'https://dkravt.ai',
