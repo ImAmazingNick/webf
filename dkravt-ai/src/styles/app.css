@@ -190,14 +190,24 @@
 }
 .profile-card:hover { filter: brightness(1.06); }
 
-/* Idea items */
-.idea-item {
+/* Idea cards — glass panels */
+.idea-card {
   opacity: 0;
-  transform: translateY(22px);
-  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  transform: translateY(16px);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  padding: 18px 22px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
-.idea-item.visible { opacity: 1; transform: translateY(0); }
-.idea-item:hover { transform: translateX(18px); }
+.idea-card.visible { opacity: 1; transform: translateY(0); }
+.idea-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
 
 /* Glitch effect */
 .glitch {
@@ -357,5 +367,5 @@
   .typewriter::after { animation: none; }
   .animate-breathe { animation: none; }
   .glow-pink { animation: none; }
-  .idea-item { opacity: 1; transform: none; transition: none; }
+  .idea-card { opacity: 1; transform: none; transition: none; }
 }

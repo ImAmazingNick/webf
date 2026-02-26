@@ -8,6 +8,7 @@
     html: string;
   }
 
+  let open = $state(false);
   let lines = $state<Line[]>([]);
   let inputValue = $state('');
   let commandHistory = $state<string[]>([]);
@@ -20,10 +21,16 @@
 
   function print(html: string) {
     lines = [...lines, { html }];
-    // Scroll to bottom next tick
     requestAnimationFrame(() => {
       if (outputEl) outputEl.scrollTop = outputEl.scrollHeight;
     });
+  }
+
+  function toggle() {
+    open = !open;
+    if (open) {
+      requestAnimationFrame(() => inputEl?.focus());
+    }
   }
 
   function submit() {
@@ -38,7 +45,6 @@
     const result = executeCommand(cmd);
 
     if (result === null) {
-      // /clear
       lines = [];
     } else if (result === '__MODE_GLITCH__') {
       print('<span class="text-pink-400">glitch engaged for 0.8s</span>');
@@ -84,15 +90,14 @@
     inputEl?.focus();
   }
 
-  // Global backtick focus
   function onWindowKeydown(e: KeyboardEvent) {
     if (e.key === '`') {
       e.preventDefault();
-      inputEl?.focus();
+      if (!open) open = true;
+      requestAnimationFrame(() => inputEl?.focus());
     }
   }
 
-  // Welcome message (untracked to avoid lines read/write cycle)
   $effect(() => {
     untrack(() => {
       const date = new Date().toLocaleDateString('en-US', {
@@ -110,48 +115,58 @@
 <svelte:window onkeydown={onWindowKeydown} />
 
 <section class="mb-16">
-  <div class="terminal">
-    <div class="terminal-header">
-      <div class="flex items-center justify-between">
-        <div class="flex gap-2">
-          <div class="w-[12px] h-[12px] rounded-full bg-[#ff5f57]"></div>
-          <div class="w-[12px] h-[12px] rounded-full bg-[#febc2e]"></div>
-          <div class="w-[12px] h-[12px] rounded-full bg-[#28c840]"></div>
+  {#if !open}
+    <button
+      onclick={toggle}
+      class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800/80 hover:border-zinc-700 transition-all text-[11px] font-mono text-zinc-500 hover:text-zinc-300 cursor-pointer"
+    >
+      <span class="text-emerald-400/70">$</span>
+      <span>terminal</span>
+      <span class="text-zinc-600 text-[9px] ml-1">press `</span>
+    </button>
+  {:else}
+    <div class="terminal">
+      <div class="terminal-header">
+        <div class="flex items-center justify-between">
+          <div class="flex gap-2">
+            <div class="w-[12px] h-[12px] rounded-full bg-[#ff5f57]"></div>
+            <div class="w-[12px] h-[12px] rounded-full bg-[#febc2e]"></div>
+            <div class="w-[12px] h-[12px] rounded-full bg-[#28c840]"></div>
+          </div>
+          <div class="text-[11px] font-mono text-zinc-500 tracking-wide">daniel@sf-fog — zsh</div>
+          <button onclick={toggle} class="text-zinc-500 hover:text-zinc-300 transition text-xs font-mono cursor-pointer">close</button>
         </div>
-        <div class="text-[11px] font-mono text-zinc-500 tracking-wide">daniel@sf-fog — zsh</div>
-        <div class="w-[60px]"></div>
+      </div>
+      <div bind:this={outputEl} class="terminal-output">
+        {#each lines as line}
+          <div>{@html line.html}</div>
+        {/each}
+      </div>
+      <div class="relative px-4 py-2.5 bg-black border-t border-zinc-800 flex items-center">
+        <span class="prompt font-mono mr-2 select-none">$</span>
+        <input
+          bind:this={inputEl}
+          bind:value={inputValue}
+          onkeydown={onKeydown}
+          oninput={onInput}
+          type="text"
+          class="flex-1 bg-transparent outline-none text-emerald-200 font-mono text-sm placeholder-zinc-600"
+          placeholder="type / for commands"
+          autocomplete="off"
+        />
+        {#if showDropdown}
+          <div class="absolute bottom-full left-0 right-0 bg-zinc-900 border border-zinc-800 rounded-t-lg max-h-48 overflow-y-auto">
+            {#each commands as cmd}
+              <button
+                class="block w-full text-left px-5 py-1.5 text-sm font-mono text-zinc-400 hover:bg-zinc-800 hover:text-white transition"
+                onclick={() => selectCommand(cmd)}
+              >
+                {cmd}
+              </button>
+            {/each}
+          </div>
+        {/if}
       </div>
     </div>
-    <div bind:this={outputEl} class="terminal-output">
-      {#each lines as line}
-        <div>{@html line.html}</div>
-      {/each}
-    </div>
-    <div class="relative px-4 py-2.5 bg-black border-t border-zinc-800 flex items-center">
-      <span class="prompt font-mono mr-2 select-none">$</span>
-      <input
-        bind:this={inputEl}
-        bind:value={inputValue}
-        onkeydown={onKeydown}
-        oninput={onInput}
-        type="text"
-        class="flex-1 bg-transparent outline-none text-emerald-200 font-mono text-sm placeholder-zinc-600"
-        placeholder="type / for commands • ` to focus"
-        autocomplete="off"
-      />
-      {#if showDropdown}
-        <div class="absolute bottom-full left-0 right-0 bg-zinc-900 border border-zinc-800 rounded-t-lg max-h-48 overflow-y-auto">
-          {#each commands as cmd}
-            <button
-              class="block w-full text-left px-5 py-1.5 text-sm font-mono text-zinc-400 hover:bg-zinc-800 hover:text-white transition"
-              onclick={() => selectCommand(cmd)}
-            >
-              {cmd}
-            </button>
-          {/each}
-        </div>
-      {/if}
-    </div>
-  </div>
-  <div class="text-[10px] font-mono text-zinc-500 mt-3 text-center" style="letter-spacing: 0.15em;">real terminal • ↑↓ history • press `</div>
+  {/if}
 </section>
