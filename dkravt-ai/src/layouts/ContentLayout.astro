@@ -1,0 +1,46 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  date?: Date;
+  tags?: string[];
+  backLink?: string;
+  backLabel?: string;
+}
+
+const { title, description, date, tags, backLink = '/', backLabel = 'Back' } = Astro.props;
+---
+
+<BaseLayout title={`${title} — dkravt.ai`} description={description}>
+  <div class="max-w-[650px] mx-auto px-6 pt-24 pb-32 relative z-10">
+    <nav class="mb-12 text-xs font-mono text-zinc-600" style="letter-spacing: 0.1em;">
+      <a href="/" class="hover:text-zinc-300 transition">~/home</a>
+      <span class="text-zinc-700 mx-1.5">›</span>
+      <a href={backLink} class="hover:text-zinc-300 transition">{backLabel.toLowerCase()}</a>
+      <span class="text-zinc-700 mx-1.5">›</span>
+      <span class="text-zinc-400">{title.toLowerCase()}</span>
+    </nav>
+    {date && (
+      <div class="flex items-center gap-4 mb-6">
+        <time class="text-xs font-mono text-zinc-500" datetime={date.toISOString()}>
+          {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+        {tags && tags.length > 0 && (
+          <div class="flex gap-2">
+            {tags.map((tag: string) => (
+              <span class="text-[10px] font-mono text-zinc-600 border border-zinc-800 px-2 py-0.5 rounded">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+    <article class="prose">
+      <slot />
+    </article>
+    <div class="text-center text-xs font-mono text-zinc-600 pt-16 mt-16 border-t border-zinc-900">
+      <a href="https://x.com/xaboratory" class="hover:text-zinc-400 transition">Grok</a> & <a href="https://x.com/nickbaumann98" class="hover:text-zinc-400 transition">Nick</a> • A collaboration between xAI and human ingenuity • 2026
+    </div>
+  </div>
+</BaseLayout>

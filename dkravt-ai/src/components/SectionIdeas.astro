@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content';
+
+const ideas = (await getCollection('ideas')).sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
+---
+
+<section id="ideas" class="mb-20">
+  <h2 class="text-[27px] font-medium tracking-tight mb-8">Ideas worth reading</h2>
+  <div class="space-y-10">
+    {ideas.map((idea, i) => (
+      <a
+        href={`/ideas/${idea.id}`}
+        class="idea-item visible flex gap-6 group"
+        style={`transition-delay: ${i * 90}ms`}
+      >
+        <div class="w-6 text-right text-xl font-light text-zinc-700 group-hover:text-zinc-400 transition">
+          {String(i + 1).padStart(2, '0')}
+        </div>
+        <div class="flex-1">
+          <div class="font-medium tracking-tight text-xl group-hover:text-white transition">{idea.data.title}</div>
+          <div class="text-sm text-zinc-400 mt-1.5">{idea.data.description}</div>
+        </div>
+      </a>
+    ))}
+  </div>
+</section>

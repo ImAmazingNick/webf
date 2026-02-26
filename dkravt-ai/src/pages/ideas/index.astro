@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const ideas = (await getCollection('ideas')).sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
+---
+
+<BaseLayout title="Ideas — dkravt.ai">
+  <div class="max-w-[650px] mx-auto px-6 pt-24 pb-32 relative z-10">
+    <nav class="mb-12 text-xs font-mono text-zinc-600" style="letter-spacing: 0.1em;">
+      <a href="/" class="hover:text-zinc-300 transition">~/home</a>
+      <span class="text-zinc-700 mx-1.5">›</span>
+      <span class="text-zinc-400">ideas</span>
+    </nav>
+    <h1 class="geist-pixel text-white mb-12">IDEAS</h1>
+    <div class="space-y-10">
+      {ideas.map((idea, i) => (
+        <a
+          href={`/ideas/${idea.id}`}
+          class="idea-item visible flex gap-6 group"
+          style={`transition-delay: ${i * 90}ms`}
+        >
+          <div class="w-6 text-right text-xl font-light text-zinc-700 group-hover:text-zinc-400 transition">
+            {String(i + 1).padStart(2, '0')}
+          </div>
+          <div class="flex-1">
+            <div class="font-medium tracking-tight text-xl group-hover:text-white transition">{idea.data.title}</div>
+            <div class="text-sm text-zinc-400 mt-1.5">{idea.data.description}</div>
+            <div class="flex gap-2 mt-2">
+              {idea.data.tags.map((tag: string) => (
+                <span class="text-[10px] font-mono text-zinc-600 border border-zinc-800 px-2 py-0.5 rounded">{tag}</span>
+              ))}
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
+    <div class="text-center text-xs font-mono text-zinc-600 pt-16 mt-16 border-t border-zinc-900">
+      <a href="https://x.com/xaboratory" class="hover:text-zinc-400 transition">Grok</a> & <a href="https://x.com/nickbaumann98" class="hover:text-zinc-400 transition">Nick</a> • A collaboration between xAI and human ingenuity • 2026
+    </div>
+  </div>
+</BaseLayout>

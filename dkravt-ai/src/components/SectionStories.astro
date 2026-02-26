@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+
+const stories = (await getCollection('stories')).sort((a, b) => (a.data.order ?? 99) - (b.data.order ?? 99));
+
+const storyImages = [
+  'https://dkravt.ai/comics/princess-mira/01_title.png',
+  'https://dkravt.ai/comics/demon-hunters/01_title.png',
+  'https://dkravt.ai/comics/hozyayka/01_title.png',
+  'https://dkravt.ai/comics/inanna/01_title.png',
+];
+---
+
+<section id="stories" class="mb-20">
+  <h2 class="text-[27px] font-medium tracking-tight mb-8">Stories from the void</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+    {stories.map((story, i) => (
+      <a href={`/stories/${story.id}`} class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden group">
+        <div class="aspect-[16/10] overflow-hidden">
+          <img
+            src={storyImages[i % storyImages.length]}
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            alt={story.data.title}
+            loading="lazy"
+          />
+        </div>
+        <div class="px-7 py-6">
+          <div class="font-medium text-white">{story.data.title}</div>
+          {story.data.subtitle && (
+            <div class="text-xs font-mono text-zinc-600 mt-1">{story.data.subtitle}</div>
+          )}
+          <div class="text-xs font-mono text-zinc-500 mt-1">
+            {story.data.slideCount && `${story.data.slideCount} slides`}
+            {story.data.style && ` • ${story.data.style} style`}
+          </div>
+        </div>
+      </a>
+    ))}
+  </div>
+</section>

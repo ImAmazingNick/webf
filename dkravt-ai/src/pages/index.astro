@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionMetadata from '../components/SectionMetadata.astro';
+import SectionBio from '../components/SectionBio.astro';
+import SectionIdeas from '../components/SectionIdeas.astro';
+import SectionStories from '../components/SectionStories.astro';
+import Footer from '../components/Footer.astro';
+
+import StatusBarLive from '../components/StatusBarLive.svelte';
+import Terminal from '../components/Terminal.svelte';
+import ProfileTilt from '../components/ProfileTilt.svelte';
+import HeatmapInteractive from '../components/HeatmapInteractive.svelte';
+import Modal from '../components/Modal.svelte';
+
+import { SITE } from '../lib/constants';
+---
+
+<BaseLayout>
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div><span class="inline-block w-[5px] h-[5px] bg-green-400 rounded-full animate-status-pulse"></span> CONNECTED • SF FOG</div>
+    <StatusBarLive client:idle />
+  </div>
+
+  <div class="max-w-[650px] mx-auto px-6 pt-24 pb-32 relative z-10">
+    <!-- HERO -->
+    <div class="flex flex-col md:flex-row items-start gap-10 mb-20">
+      <div class="md:w-32 flex-shrink-0">
+        <ProfileTilt
+          client:visible
+          name={SITE.name}
+          imageSrc="https://cdn.prod.website-files.com/5a1eb87c9afe1000014a4c7d/654f69764d1a59b887b2a60d_5dc5f9642427071043c21d40_Daniel%2520Kravtsov.jpeg"
+          linkedinUrl={SITE.linkedin}
+        />
+      </div>
+      <div class="flex-1 pt-2">
+        <h1 class="geist-pixel text-white mb-4">{SITE.title}</h1>
+        <p class="text-base md:text-lg font-light text-zinc-400 max-w-[440px]" style="letter-spacing: -0.2px; line-height: 1.5; word-break: break-word;">
+          {SITE.tagline}
+        </p>
+      </div>
+    </div>
+
+    <!-- METADATA -->
+    <SectionMetadata />
+
+    <!-- BIO -->
+    <SectionBio />
+
+    <!-- TERMINAL -->
+    <Terminal client:visible />
+
+    <!-- IDEAS -->
+    <SectionIdeas />
+
+    <!-- HEATMAP -->
+    <HeatmapInteractive client:visible />
+
+    <!-- STORIES -->
+    <SectionStories />
+
+    <!-- LINKEDIN -->
+    <div class="text-center mb-20">
+      <a href="https://www.linkedin.com/in/danielkravtsov/" target="_blank" rel="noopener noreferrer" class="inline-block text-sm font-mono text-zinc-500 hover:text-pink-400 transition tracking-wide">
+        LinkedIn →
+      </a>
+    </div>
+
+    <!-- FOOTER -->
+    <Footer />
+  </div>
+
+  <!-- MODAL -->
+  <Modal client:idle />
+</BaseLayout>
